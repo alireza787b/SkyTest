@@ -1,0 +1,254 @@
+{
+    "formGroups": [{
+            "groupTitle": "Test Information",
+            "fields": [{
+                    "label": "Prototype Name",
+                    "name": "prototype_name",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Enter the name of the prototype being tested."
+                },
+                {
+                    "label": "Prototype ID",
+                    "name": "prototype_id",
+                    "type": "text",
+                    "required": true,
+                    "hint": "Unique identifier for the prototype."
+                },
+                {
+                    "label": "Test ID",
+                    "name": "test_id",
+                    "type": "text",
+                    "required": true,
+                    "hint": "Unique identifier for this specific test."
+                },
+                {
+                    "label": "Test Title",
+                    "name": "test_title",
+                    "type": "text",
+                    "required": true,
+                    "hint": "A brief title summarizing the test."
+                },
+                {
+                    "label": "Date",
+                    "name": "date",
+                    "type": "date",
+                    "required": false,
+                    "hint": "Date the test is performed."
+                },
+                {
+                    "label": "Time",
+                    "name": "time",
+                    "type": "time",
+                    "required": false,
+                    "hint": "Time the test started."
+                }
+            ]
+        },
+        {
+            "groupTitle": "Personnel",
+            "fields": [{
+                    "label": "Pilot",
+                    "name": "pilot",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Name of the pilot conducting the test."
+                },
+                {
+                    "label": "Observer(s)",
+                    "name": "observers",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Names of any observers present during the test."
+                }
+            ]
+        },
+        {
+            "groupTitle": "Flight Conditions",
+            "fields": [{
+                    "label": "Location",
+                    "name": "location",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Location where the test is conducted."
+                },
+                {
+                    "label": "Weather Conditions",
+                    "name": "weather_conditions",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Brief description of weather conditions during the test."
+                },
+                {
+                    "label": "Wind Speed and Direction",
+                    "name": "wind_speed_direction",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Wind speed (in m/s) and direction during the test."
+                },
+                {
+                    "label": "Temperature",
+                    "name": "temperature",
+                    "type": "number",
+                    "step": "0.1",
+                    "required": false,
+                    "hint": "Temperature in Celsius at the test location."
+                }
+            ]
+        },
+        {
+            "groupTitle": "Pre-Flight Checklist",
+            "fields": [{
+                    "label": "Online Checklist Result",
+                    "name": "online_checklist_result",
+                    "type": "select",
+                    "options": ["Pass", "Fail"],
+                    "required": false,
+                    "hint": "Result of the pre-flight online checklist."
+                },
+                {
+                    "label": "Start Battery Voltage",
+                    "name": "start_battery_voltage",
+                    "type": "number",
+                    "step": "0.1",
+                    "required": false,
+                    "hint": "Voltage of the drone's battery before takeoff, in volts."
+                }
+            ]
+        },
+        {
+            "groupTitle": "Test Parameters",
+            "fields": [{
+                    "label": "Flight Mode",
+                    "name": "flight_mode",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Flight mode used during the test (e.g., Stabilize, Position, Mission, Manual)."
+                },
+                {
+                    "label": "Planned Altitude",
+                    "name": "planned_altitude",
+                    "type": "number",
+                    "step": "0.1",
+                    "required": false,
+                    "hint": "Planned maximum altitude for the test, in meters."
+                },
+                {
+                    "label": "Planned Speed",
+                    "name": "planned_speed",
+                    "type": "number",
+                    "step": "0.1",
+                    "required": false,
+                    "hint": "Planned maximum speed for the test, in m/s."
+                },
+                {
+                    "label": "Planned Duration",
+                    "name": "planned_duration",
+                    "type": "time",
+                    "value": "00:00",
+                    "min": "00:00",
+                    "required": false,
+                    "hint": "Planned duration of the test, formatted as 'minutes:seconds'."
+                },
+                {
+                    "label": "Transition Parameters",
+                    "name": "transition_parameters",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Specific parameters related to transition tests, if applicable."
+                }
+            ]
+        },
+        {
+            "groupTitle": "Observations and Results",
+            "fields": [{
+                    "label": "Start Time",
+                    "name": "start_time",
+                    "type": "time",
+                    "required": false,
+                    "hint": "Actual start time of the flight."
+                },
+                {
+                    "label": "End Time",
+                    "name": "end_time",
+                    "type": "time",
+                    "required": false,
+                    "hint": "Actual end time of the flight."
+                },
+                {
+                    "label": "Flight Duration",
+                    "name": "flight_duration",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Total duration of the flight, formatted as 'minutes:seconds'."
+                },
+                {
+                    "label": "Max Altitude Achieved",
+                    "name": "max_altitude_achieved",
+                    "type": "number",
+                    "step": "0.1",
+                    "required": false,
+                    "hint": "Maximum altitude achieved during the flight, in meters."
+                },
+                {
+                    "label": "Max Speed Achieved",
+                    "name": "max_speed_achieved",
+                    "type": "number",
+                    "step": "0.1",
+                    "required": false,
+                    "hint": "Maximum speed achieved during the flight, in m/s."
+                },
+                {
+                    "label": "Significant Events",
+                    "name": "significant_events",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Any significant events or observations during the flight."
+                },
+                {
+                    "label": "ULog File Name",
+                    "name": "ulog_file_name",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Name of the ULog file containing detailed flight data."
+                },
+                {
+                    "label": "End Battery Voltage",
+                    "name": "end_battery_voltage",
+                    "type": "number",
+                    "step": "0.1",
+                    "required": false,
+                    "hint": "Voltage of the drone's battery after landing, in volts."
+                },
+                {
+                    "label": "Notable Observations",
+                    "name": "notable_observations",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Any notable observations made during or after the flight."
+                },
+                {
+                    "label": "Issues Encountered",
+                    "name": "issues_encountered",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Description of any issues encountered during the test."
+                },
+                {
+                    "label": "Potential Improvements",
+                    "name": "potential_improvements",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Suggestions for potential improvements based on the test results."
+                },
+                {
+                    "label": "Next Steps/Action Items",
+                    "name": "next_steps_action_items",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Planned next steps or action items following the test."
+                }
+            ]
+        }
+    ]
+}
