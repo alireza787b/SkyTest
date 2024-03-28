@@ -34,3 +34,6 @@ database_file_path = os.path.join(os.path.dirname(__file__), 'app/skytest.db')
 
 # Execute database initialization within the application context
 initialize_database('app/definitions/form_structure.json', replace_existing=True)
+
+
+
