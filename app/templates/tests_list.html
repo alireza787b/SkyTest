@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test List</title>
+</head>
+<body>
+    <h1>List of Tests</h1>
+    <ul>
+        {% for test in tests %}
+            <li>
+                <a href="{{ url_for('view_test', test_id=test.id) }}">
+                    {{ test.test_title }} - {{ test.date }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -13,7 +13,13 @@
                 {% for field in group.fields %}
                     <div>
                         <label for="{{ field.name }}">{{ field.label }}</label>
-                        {% if field.type == "select" %}
+                        {% if field.name == "test_id" %}
+                            <input type="text" name="{{ field.name }}" id="{{ field.name }}" value="{{ next_test_id }}" readonly>
+                        {% elif field.name == "date" %}
+                            <input type="date" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_date }}" >
+                        {% elif field.name == "time" %}
+                            <input type="time" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_time }}" >
+                        {% elif field.type == "select" %}
                             <select name="{{ field.name }}" id="{{ field.name }}" {% if field.required %}required{% endif %}>
                                 {% for option in field.options %}
                                     <option value="{{ option }}">{{ option }}</option>

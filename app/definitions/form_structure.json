@@ -2,6 +2,13 @@
     "formGroups": [{
             "groupTitle": "Test Information",
             "fields": [{
+                    "label": "Test ID",
+                    "name": "test_id",
+                    "type": "text",
+                    "required": true,
+                    "hint": "Unique identifier for this specific test."
+                },
+                {
                     "label": "Prototype Name",
                     "name": "prototype_name",
                     "type": "text",
@@ -16,11 +23,11 @@
                     "hint": "Unique identifier for the prototype."
                 },
                 {
-                    "label": "Test ID",
-                    "name": "test_id",
+                    "label": "Test Document ID",
+                    "name": "test_doc_id",
                     "type": "text",
                     "required": true,
-                    "hint": "Unique identifier for this specific test."
+                    "hint": "Identifier for this test documentation."
                 },
                 {
                     "label": "Test Title",

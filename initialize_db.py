@@ -2,7 +2,7 @@ from os.path import exists
 import os
 from app import db, app
 from app.db_init import create_models_from_json
-
+from config import JSON_PATH
 def initialize_database(json_path, replace_existing=False):
     """
     Documentation...
@@ -22,18 +22,15 @@ def initialize_database(json_path, replace_existing=False):
                 print("Replacing the existing database.")
             else:
                 print("Creating a new database.")
-
+            
+            # Move db.drop_all() and db.create_all() after dynamically creating models
+            create_models_from_json(json_path)
+            
+            # Now that models are defined and registered, create the tables
             db.drop_all()
             db.create_all()
-            create_models_from_json(json_path)
 
             print(f"Database initialization complete. Structure defined in '{json_path}' has been applied.")
 
-# Ensure the database file path is absolute to prevent issues in different environments
-database_file_path = os.path.join(os.path.dirname(__file__), 'app/skytest.db')
-
 # Execute database initialization within the application context
-initialize_database('app/definitions/form_structure.json', replace_existing=True)
-
-
-
+initialize_database(JSON_PATH, replace_existing=True)

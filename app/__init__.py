@@ -1,15 +1,15 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from config import JSON_PATH
 
-# Initialize the Flask application
+# Initialize the Flask application and SQLAlchemy
 app = Flask(__name__)
-
-# Database configuration (using SQLite for simplicity)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///skytest.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize SQLAlchemy with Flask app
 db = SQLAlchemy(app)
 
-# Import routes after the app instance is created to avoid circular imports
+# Important: Import create_models_from_json after db is defined
+from app.db_init import create_models_from_json
+create_models_from_json(JSON_PATH)
+
 from . import routes
