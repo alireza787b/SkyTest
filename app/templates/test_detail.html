@@ -6,8 +6,13 @@
 </head>
 <body>
     <h1>Test Detail</h1>
-    <p>Title: {{ test.test_title }}</p>
-    <p>Date: {{ test.date }}</p>
-    <!-- Add more fields as needed -->
+    <table>
+        {% for label, value in test_details.items() %}
+        <tr>
+            <td><strong>{{ label }}:</strong></td>
+            <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>

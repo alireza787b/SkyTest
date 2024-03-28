@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SkyTest Form</title>
+</head>
+<body>
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <h1>Flight Test Form</h1>
+    <form action="{{ url_for('submit_form') }}" method="post">
+        {% for group in formGroups %}
+            <fieldset>
+                <legend>{{ group.groupTitle }}</legend>
+                {% for field in group.fields %}
+                    <div>
+                        <label for="{{ field.name }}">{{ field.label }}</label>
+                        {% if field.name == "test_id" %}
+                            <input type="text" name="{{ field.name }}" id="{{ field.name }}" value="{{ next_test_id }}" readonly>
+                        {% elif field.name == "date" %}
+                            <input type="date" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_date }}" >
+                        {% elif field.name == "time" %}
+                            <input type="time" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_time }}" >
+                        {% elif field.type == "select" %}
+                            <select name="{{ field.name }}" id="{{ field.name }}" {% if field.required %}required{% endif %}>
+                                {% for option in field.options %}
+                                    <option value="{{ option }}">{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                        {% elif field.type == "textarea" %}
+                            <textarea name="{{ field.name }}" id="{{ field.name }}" placeholder="{{ field.hint }}" {% if field.required %}required{% endif %}></textarea>
+                        {% else %}
+                            <input type="{{ field.type }}" name="{{ field.name }}" id="{{ field.name }}" placeholder="{{ field.hint }}" {% if field.required %}required{% endif %} {% if field.step %}step="{{ field.step }}"{% endif %}>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </fieldset>
+        {% endfor %}
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

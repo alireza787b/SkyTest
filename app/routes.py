@@ -1,18 +1,22 @@
 from datetime import datetime
-from flask import render_template, request, url_for, redirect
+from flask import render_template, request, url_for, redirect, flash
 import json
 import os
 from . import app, db
 from .db_init import dynamic_models
-
+from config import TITLE, JSON_PATH
 
 def load_form_structure():
     # Adjust the path if your 'definitions' directory location changes
-    form_structure_path = os.path.join(app.root_path, 'definitions', 'form_structure.json')
+    form_structure_path = JSON_PATH
     with open(form_structure_path, 'r') as json_file:
         form_structure = json.load(json_file)
     return form_structure  # Return the entire structure, including groups
 
+@app.route('/')
+def home():
+    page_title = TITLE # Or fetch from config.py if you decide to include it there
+    return render_template('index.html', page_title=page_title)
 
 
 @app.route('/form', methods=['GET'])
@@ -28,7 +32,7 @@ def display_form():
     current_date = datetime.now().strftime('%Y-%m-%d')
     current_time = datetime.now().strftime('%H:%M')
 
-    return render_template('index.html', formGroups=form_structure['formGroups'],
+    return render_template('add_test.html', formGroups=form_structure['formGroups'],
                            next_test_id=next_test_id, current_date=current_date, current_time=current_time)
 
 
@@ -57,6 +61,7 @@ def submit_form():
 
     db.session.add(new_entry)
     db.session.commit()
+    flash('Test successfully submitted!', 'success')  # 'success' is a category you can use in the template
 
     return redirect(url_for('display_form'))
 
@@ -87,9 +92,20 @@ def list_tests():
     tests = TestData.query.with_entities(*fields).all()
     return render_template('tests_list.html', tests=tests)
 
-
 @app.route('/test/<int:test_id>')
 def view_test(test_id):
     TestData = dynamic_models.get('TestData')
+    if TestData is None:
+        flash("Error: TestData model not found.", "error")
+        return redirect(url_for('index'))
+    
     test = TestData.query.get_or_404(test_id)
-    return render_template('test_detail.html', test=test)
+    form_structure = load_form_structure()
+
+    test_details = {}
+    for group in form_structure['formGroups']:
+        for field in group['fields']:
+            field_name = field['name']
+            test_details[field['label']] = getattr(test, field_name, "N/A") or "N/A"
+    
+    return render_template('test_detail.html', test_details=test_details, title=field['label'])

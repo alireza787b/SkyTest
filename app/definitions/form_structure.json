@@ -26,7 +26,7 @@
                     "label": "Test Document ID",
                     "name": "test_doc_id",
                     "type": "text",
-                    "required": true,
+                    "required": false,
                     "hint": "Identifier for this test documentation."
                 },
                 {
@@ -40,14 +40,14 @@
                     "label": "Date",
                     "name": "date",
                     "type": "date",
-                    "required": false,
+                    "required": true,
                     "hint": "Date the test is performed."
                 },
                 {
                     "label": "Time",
                     "name": "time",
                     "type": "time",
-                    "required": false,
+                    "required": true,
                     "hint": "Time the test started."
                 }
             ]
