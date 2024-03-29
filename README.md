@@ -49,7 +49,7 @@ Ensure Python and Flask are installed on your system. SkyTest utilizes Flask, a 
     ```bash
     python run.py
     ```
-    The application will be available at `http://localhost:5000/`.
+    The application will be available at `http://localhost:5562` (or whatever port defined in the `config.py`).
 
 ## Configuration
 
