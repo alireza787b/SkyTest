@@ -4,6 +4,11 @@ import os
 
 TITLE = "SkyTest Documentation Platform"
 
+# Configure the port number for the Flask application
+FLASK_RUN_PORT = 5562  # Example port number, change as needed
+FLASK_RUN_HOST = '0.0.0.0'  # Listen on all network interfaces
+FLASK_DEBUG_FLAG = True
+
 # Path to the JSON structure for tests
 JSON_PATH = "app/definitions/tests_structure.json"
 
