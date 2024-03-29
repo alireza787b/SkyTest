@@ -412,24 +412,29 @@ def data_management():
 @app.route('/export_data')
 def export_data():
     import tempfile
+    import shutil
+    from flask import send_file
 
-    # Temporary directory to store the database dump and attachments before zipping
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Copy the database file
         shutil.copy2(DATABASE_PATH, tmpdirname)
+        
         # Copy the attachments directory
         attachments_backup_dir = os.path.join(tmpdirname, 'attachments')
         shutil.copytree(UPLOAD_FOLDER, attachments_backup_dir)
         
-        # Create a zip file
+        # Copy the definitions directory
+        definitions_backup_dir = os.path.join(tmpdirname, 'definitions')
+        shutil.copytree('app/definitions', definitions_backup_dir)
+
+        # Create a zip file of the entire temporary directory (including the database, attachments, and definitions)
         backup_zip = shutil.make_archive(base_name="backup", format='zip', root_dir=tmpdirname)
         
         return send_file(backup_zip, as_attachment=True, download_name='backup.zip')
-    
-    
+
+
 @app.route('/import_data', methods=['POST'])
 def import_data():
-    # Check for file in the request
     if 'importFile' not in request.files:
         flash('No file part', 'error')
         return redirect(url_for('data_management'))
@@ -438,39 +443,48 @@ def import_data():
         flash('No selected file', 'error')
         return redirect(url_for('data_management'))
 
-    # Save the uploaded file temporarily
     import tempfile
+    import zipfile
+    import os
+    from flask import flash, redirect, url_for
+
     with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
         file.save(tmpfile.name)
 
-        # Ensure it's a zip file
         if not zipfile.is_zipfile(tmpfile.name):
             flash('Uploaded file is not a zip file', 'error')
-            os.unlink(tmpfile.name)  # Remove the temp file
+            os.unlink(tmpfile.name)
             return redirect(url_for('data_management'))
 
-        # Process the zip file
         try:
             with zipfile.ZipFile(tmpfile.name, 'r') as zip_ref:
-                zip_ref.extractall(path=tempfile.gettempdir())
+                temp_extract_dir = tempfile.mkdtemp()
+                zip_ref.extractall(path=temp_extract_dir)
                 
                 # Replace the database file
-                extracted_db_path = os.path.join(tempfile.gettempdir(), 'skytest.db')
+                extracted_db_path = os.path.join(temp_extract_dir, 'skytest.db')
                 if os.path.exists(extracted_db_path):
                     shutil.move(extracted_db_path, DATABASE_PATH)
 
                 # Replace the attachments folder
-                extracted_attachments_path = os.path.join(tempfile.gettempdir(), 'attachments')
+                extracted_attachments_path = os.path.join(temp_extract_dir, 'attachments')
                 if os.path.exists(extracted_attachments_path):
                     if os.path.exists(UPLOAD_FOLDER):
                         shutil.rmtree(UPLOAD_FOLDER)
                     shutil.move(extracted_attachments_path, UPLOAD_FOLDER)
+                
+                # Replace the definitions folder
+                extracted_definitions_path = os.path.join(temp_extract_dir, 'definitions')
+                if os.path.exists(extracted_definitions_path):
+                    definitions_dest_path = os.path.join('app', 'definitions')
+                    if os.path.exists(definitions_dest_path):
+                        shutil.rmtree(definitions_dest_path)
+                    shutil.move(extracted_definitions_path, definitions_dest_path)
 
-            flash('Data import successful!', 'success')
+            flash('Data import was successful!', 'success')
         except Exception as e:
-            flash(f'An error occurred during import: {e}', 'error')
+            flash(f'An error occurred during the import: {e}', 'error')
         finally:
-            os.unlink(tmpfile.name)  # Ensure the temp file is removed after processing
+            os.unlink(tmpfile.name)  # Remove the temp file
 
     return redirect(url_for('data_management'))
-
