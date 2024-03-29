@@ -1,6 +1,13 @@
 # utils.py
 
 from datetime import datetime
+import os
+
+from flask import flash
+
+from config import UPLOAD_FOLDER
+from werkzeug.utils import secure_filename
+
 
 def generate_unique_proc_id(Procedure, submitted_id):
     """Generates a unique ID by incrementing submitted_id until it's unique."""
@@ -29,3 +36,41 @@ def try_parse_time(time_str):
             continue
     return None  # Or raise an exception, log an error, etc.
 
+
+def convert_to_time(time_str):
+    """
+    Converts a string to a datetime.time object. Returns None if conversion fails.
+    """
+    if not time_str:
+        return None  # Immediately return None if the input is empty or None
+    try:
+        return datetime.strptime(time_str, '%H:%M').time()
+    except ValueError:
+        return None
+
+
+
+def create_test_directory(test_id):
+    """
+    Creates a directory for a specific test to store files.
+    """
+    base_dir = os.path.join(UPLOAD_FOLDER, str(test_id))
+    os.makedirs(base_dir, exist_ok=True)
+    return base_dir
+
+def save_uploaded_files(uploaded_files, test_id):
+    print("Uploaded Files:", uploaded_files)  # Debug: Print uploaded files info
+
+    test_dir = create_test_directory(test_id)
+    saved_files = []
+
+    for file in uploaded_files:
+        if file:
+            timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+            filename = secure_filename(f"{timestamp}_{file.filename}")
+            file_path = os.path.join(test_dir, filename)
+            print("Saving File:", file_path)  # Debug: Print the path where the file will be saved
+            file.save(file_path)
+            saved_files.append(filename)
+
+    return saved_files

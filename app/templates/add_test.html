@@ -23,7 +23,7 @@
         {% endif %}
     {% endwith %}
     <h1>Flight Test Form</h1>
-    <form action="{{ url_for('submit_form') }}" method="post">
+    <form action="{{ url_for('submit_form') }}" method="post" enctype="multipart/form-data">
         {% for group in formGroups %}
             <fieldset class="border p-3 rounded">
                 <legend class="w-auto">{{ group.groupTitle }}</legend>
@@ -58,6 +58,10 @@
                             </select>
                         {% elif field.type == "textarea" %}
                             <textarea name="{{ field.name }}" id="{{ field.name }}" class="form-control" placeholder="{{ field.hint }}" {% if field.required %}required{% endif %}></textarea>
+                            {% elif field.type == "file" %}
+                            <input type="file" name="{{ field.name }}" id="{{ field.name }}" class="form-control" {% if field.multiple %}multiple{% endif %} {% if field.required %}required{% endif %}>
+                            <small>{{ field.hint }}</small>
+
                         {% else %}
                             <input type="{{ field.type }}" name="{{ field.name }}" id="{{ field.name }}" class="form-control" placeholder="{{ field.hint }}" {% if field.required %}required{% endif %} {% if field.step %}step="{{ field.step }}"{% endif %}>
                             {% if field.unit %}

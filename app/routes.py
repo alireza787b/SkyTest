@@ -1,10 +1,11 @@
 from datetime import datetime
-from flask import render_template, request, url_for, redirect, flash
+import shutil
+from flask import render_template, request, send_from_directory, url_for, redirect, flash
 import json
 import os
 from . import app, db
-from config import TITLE, JSON_PATH, PROCEDURES_JSON_PATH
-from .utils import generate_unique_proc_id, generate_unique_proc_title, try_parse_time
+from config import TITLE, JSON_PATH, PROCEDURES_JSON_PATH, UPLOAD_FOLDER
+from .utils import convert_to_time, create_test_directory, generate_unique_proc_id, generate_unique_proc_title, save_uploaded_files, try_parse_time
 from app.models import get_procedure_model, get_test_data_model
 from app.forms import load_form_structure
 
@@ -40,87 +41,122 @@ def display_form():
 
 @app.route('/submit-form', methods=['POST'])
 def submit_form():
-    """Handles form submission and data persistence."""
+    """Handles form submission and data persistence including file uploads."""
     form_structure, TestData = load_form_structure(JSON_PATH), get_test_data_model()
     if not TestData:
         flash("Error: TestData model not found.", "error")
         return redirect(url_for('dashboard'))
 
     new_entry = TestData()
+    db.session.add(new_entry)
+    db.session.flush()  # Temporarily save to get the test_id for file directory
+    
+    # Always create a directory for the new test
+    test_dir = create_test_directory(new_entry.id)
+    
     for field in (f for g in form_structure['formGroups'] for f in g['fields']):
+        if field['type'] == 'file':
+            continue
         value = request.form.get(field['name'], None)
-        
-        # Check field type and convert if necessary
-        if field['type'] == 'date' and value:
-            try:
-                value = datetime.strptime(value, '%Y-%m-%d').date()
-            except ValueError:
-                flash(f"Invalid date format for {field['name']}. Expected YYYY-MM-DD.", "error")
-                return redirect(url_for('display_form'))
-        elif field['type'] == 'time':
-            if value:  # If there's a value, try converting it
-                try:
-                    value = datetime.strptime(value, '%H:%M').time()
-                except ValueError:
-                    flash(f"Invalid time format for {field['name']}. Expected HH:MM.", "error")
-                    return redirect(url_for('display_form'))
-            else:  # If no value is provided, set it to None
-                value = None
-        elif field['type'] == 'number' and not value:
-            value = None
 
-        setattr(new_entry, field['name'], value)
+        if field['type'] == 'date' and value:
+            value = datetime.strptime(value, '%Y-%m-%d').date()
+        elif field['type'] == 'time' and value:
+            value = convert_to_time(value)  # Use the new conversion function
+        elif field['type'] == 'number':
+            value = float(value) if value else None  # Ensure proper handling of numeric fields
+
+        if value is not None:  # Only set the attribute if value is not None
+            setattr(new_entry, field['name'], value)
+
+    # Handle file uploads
+    uploaded_files = request.files.getlist('attachments')
+    saved_files = save_uploaded_files(uploaded_files, new_entry.id)
+    if saved_files:
+        # Store comma-separated filenames in the database if files were uploaded
+        new_entry.file_path = ",".join(saved_files)
+    else:
+        # Indicate no files were uploaded or just leave it empty
+        new_entry.file_path = ""
 
     try:
-        db.session.add(new_entry)
         db.session.commit()
         flash('Test successfully submitted!', 'success')
-    except Exception as e:  # Broad exception handling for demonstration; refine as needed
+    except Exception as e:
         db.session.rollback()
         flash(f"Error during submission: {e}", "error")
 
     return redirect(url_for('display_form'))
 
+
 @app.route('/edit-test/<int:test_id>', methods=['GET', 'POST'])
 def edit_test(test_id):
     TestData = get_test_data_model()
-    test = TestData.query.get_or_404(test_id)  # Ensure TestData is correctly imported
-    
+    test = TestData.query.get_or_404(test_id)
+
+    # Fetch current files from the database
+    current_files = test.file_path.split(',') if test.file_path else []
+
     if request.method == 'POST':
+        # Files marked for removal
+        files_to_remove = request.form.getlist('files_to_remove[]')
+
+        # Remove selected files
+        for filename in files_to_remove:
+            if filename in current_files:
+                try:
+                    file_path = os.path.join(UPLOAD_FOLDER, str(test_id), filename)
+                    os.remove(file_path)
+                    current_files.remove(filename)  # Remove from the current files list
+                except Exception as e:
+                    flash(f'Error removing file {filename}: {e}', 'error')
+
+        # Handle new file uploads
+        new_files = request.files.getlist('new_files')
+        if new_files:
+            saved_files = save_uploaded_files(new_files, test_id)
+            current_files.extend(saved_files)  # Add newly saved files to the list
+
+        # Update the file_path field with the current state of files
+        test.file_path = ','.join(current_files)
+
+        # Process other form fields as before
         for field_name, field_value in request.form.items():
-            if field_name not in ['test_id', 'created_at']:  # Exclude non-editable fields
-                
+            # Exclude file handling fields and non-editable fields
+            if field_name not in ['test_id', 'created_at', 'files_to_remove[]', 'new_files']:
                 # Convert date fields
                 if field_name == 'date' and field_value:
                     field_value = datetime.strptime(field_value, "%Y-%m-%d").date()
-                
                 # Convert time fields
-                # Then, in your POST handling:
                 elif field_name == 'time' and field_value:
                     field_value = try_parse_time(field_value)
-
                 # Handle numeric fields - convert to appropriate type or set to None if empty
                 elif field_value.isdigit():
                     field_value = int(field_value) if field_value.isdigit() else field_value
-                
                 # For empty string values, you may decide to set them to None or keep as is depending on your requirement
                 elif field_value == '':
                     field_value = None
 
                 setattr(test, field_name, field_value)
-        
+
         try:
             db.session.commit()
             flash('Test updated successfully!', 'success')
         except Exception as e:
             db.session.rollback()
             flash(f'An error occurred: {e}', 'error')
-        
-        return redirect(url_for('list_tests'))  # Ensure 'list_tests' is a valid endpoint
 
+        return redirect(url_for('list_tests'))
+
+    # Prepare existing test data for the form, including file information
     test_data = {column.name: getattr(test, column.name) for column in test.__table__.columns}
-    test_structure = load_form_structure(JSON_PATH)  # Ensure this function returns the structure
+    # Include current file names as part of the form data
+    test_data['files'] = current_files
+
+    test_structure = load_form_structure(JSON_PATH)
+
     return render_template('edit_test.html', test=test, test_data=test_data, test_structure=test_structure)
+
 
 
 @app.route('/delete-test/<int:test_id>', methods=['POST'])
@@ -128,13 +164,25 @@ def delete_test(test_id):
     TestData = get_test_data_model()
     test = TestData.query.get_or_404(test_id)  # Ensure TestData is correctly imported
     
+    # Define the directory path for the test's files
+    directory = os.path.join(UPLOAD_FOLDER, str(test_id))
+    
     try:
+        # Attempt to delete the test record
         db.session.delete(test)
+        
+        # If the directory exists, remove it and all its contents
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+            print(f"Removed directory and all contents: {directory}")
+        
+        # Commit changes to the database
         db.session.commit()
         flash('Test successfully deleted!', 'success')
     except Exception as e:
-        db.session.rollback()
+        db.session.rollback()  # Roll back the database transaction in case of any error
         flash(f'Error deleting test: {str(e)}', 'error')
+        print(f"Error deleting directory: {e}")
         
     return redirect(url_for('list_tests'))  # Adjust 'list_tests' to your actual view function that lists all tests
 
@@ -171,6 +219,9 @@ def view_test(test_id):
 
             if 'unit' in field:
                 field_data['unit'] = field['unit']
+                
+            if field['name'] == 'attachments':
+                continue
 
             if field['name'] == 'procedure_id':
                 # Handle procedure ID and title together
@@ -182,8 +233,13 @@ def view_test(test_id):
                 test_details['Procedure Title'] = {'value': procedure_title}
             elif not procedure_id_handled or field['name'] != 'procedure_id':
                 test_details[field['label']] = field_data
+                
+     # Handle files
+    filenames = test.file_path.split(',') if test.file_path else []
+    # Assuming 'Files' label is not already used; adjust as needed
+    test_details['Files'] = {'value': filenames, 'is_files': True}
 
-    return render_template('test_detail.html', test_details=test_details)
+    return render_template('test_detail.html', test_details=test_details, test_id=test_id)
 
 
 
@@ -330,3 +386,13 @@ def delete_procedure(procedure_id):
         flash(f'Error deleting procedure: {str(e)}', 'error')
         
     return redirect(url_for('list_procedures'))
+
+@app.route('/download-test/<int:test_id>/<filename>')
+def download_file(test_id, filename):
+    directory = os.path.join(UPLOAD_FOLDER, str(test_id))
+    print(f"Attempting to download from: {directory}/{filename}")  # For debugging
+    try:
+        return send_from_directory(directory, filename, as_attachment=True)
+    except Exception as e:
+        print(f"Error: {e}")  # Log any error
+        return "File not found", 404

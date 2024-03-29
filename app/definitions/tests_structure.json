@@ -266,6 +266,14 @@
                     "type": "textarea",
                     "required": false,
                     "hint": "Planned next steps or action items following the test."
+                },
+                {
+                    "label": "Attachments",
+                    "name": "attachments",
+                    "type": "file",
+                    "required": false,
+                    "hint": "Attach any relevant files. You can select multiple files.",
+                    "multiple": true
                 }
             ]
         }

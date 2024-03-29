@@ -17,6 +17,7 @@ def create_models_from_json(json_path, model_name, table_name):
         model_attributes['time'] = db.Column(db.Time)
         # Automatically capture the timestamp when a new record is created
         model_attributes['created_at'] = db.Column(db.DateTime, default=db.func.now())
+        model_attributes['file_path'] = db.Column(db.String(512))
 
         # Determine the appropriate group key
         group_key = 'formGroups' if 'formGroups' in data else 'procedureGroups'
@@ -32,10 +33,10 @@ def create_models_from_json(json_path, model_name, table_name):
                     model_attributes[field_name] = db.Column(db.Float)
                 elif field_type == 'textarea':
                     model_attributes[field_name] = db.Column(db.Text)
-                elif field_type == 'date':
-                    model_attributes[field_name] = db.Column(db.Date)
-                elif field_type == 'time':
-                    model_attributes[field_name] = db.Column(db.Time)
+                # elif field_type == 'date':
+                #     model_attributes[field_name] = db.Column(db.Date)
+                # elif field_type == 'time':
+                #     model_attributes[field_name] = db.Column(db.Time)
                 # Consider adding more field types as needed
 
         # Create a single model class using the aggregated model attributes
