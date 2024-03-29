@@ -4,7 +4,7 @@ import json
 import os
 from . import app, db
 from config import TITLE, JSON_PATH, PROCEDURES_JSON_PATH
-from .utils import generate_unique_proc_id, generate_unique_proc_title
+from .utils import generate_unique_proc_id, generate_unique_proc_title, try_parse_time
 from app.models import get_procedure_model, get_test_data_model
 from app.forms import load_form_structure
 
@@ -38,7 +38,6 @@ def display_form():
     return render_template('add_test.html', formGroups=form_structure['formGroups'], next_test_id=next_test_id, 
                            current_date=current_date, current_time=current_time, procedure_options=procedure_options)
 
-
 @app.route('/submit-form', methods=['POST'])
 def submit_form():
     """Handles form submission and data persistence."""
@@ -50,20 +49,95 @@ def submit_form():
     new_entry = TestData()
     for field in (f for g in form_structure['formGroups'] for f in g['fields']):
         value = request.form.get(field['name'], None)
-        setattr(new_entry, field['name'], None if field['type'] == 'number' and not value else value)
-    
-    db.session.add(new_entry)
-    db.session.commit()
-    flash('Test successfully submitted!', 'success')
+        
+        # Check field type and convert if necessary
+        if field['type'] == 'date' and value:
+            try:
+                value = datetime.strptime(value, '%Y-%m-%d').date()
+            except ValueError:
+                flash(f"Invalid date format for {field['name']}. Expected YYYY-MM-DD.", "error")
+                return redirect(url_for('display_form'))
+        elif field['type'] == 'time':
+            if value:  # If there's a value, try converting it
+                try:
+                    value = datetime.strptime(value, '%H:%M').time()
+                except ValueError:
+                    flash(f"Invalid time format for {field['name']}. Expected HH:MM.", "error")
+                    return redirect(url_for('display_form'))
+            else:  # If no value is provided, set it to None
+                value = None
+        elif field['type'] == 'number' and not value:
+            value = None
+
+        setattr(new_entry, field['name'], value)
+
+    try:
+        db.session.add(new_entry)
+        db.session.commit()
+        flash('Test successfully submitted!', 'success')
+    except Exception as e:  # Broad exception handling for demonstration; refine as needed
+        db.session.rollback()
+        flash(f"Error during submission: {e}", "error")
+
     return redirect(url_for('display_form'))
 
-@app.route('/delete/<int:id>', methods=['POST'])
-def delete_entry(id):
-    """Deletes a specific data entry."""
+@app.route('/edit-test/<int:test_id>', methods=['GET', 'POST'])
+def edit_test(test_id):
     TestData = get_test_data_model()
-    db.session.delete(TestData.query.get_or_404(id))
-    db.session.commit()
-    return redirect(url_for('display_data'))
+    test = TestData.query.get_or_404(test_id)  # Ensure TestData is correctly imported
+    
+    if request.method == 'POST':
+        for field_name, field_value in request.form.items():
+            if field_name not in ['test_id', 'created_at']:  # Exclude non-editable fields
+                
+                # Convert date fields
+                if field_name == 'date' and field_value:
+                    field_value = datetime.strptime(field_value, "%Y-%m-%d").date()
+                
+                # Convert time fields
+                # Then, in your POST handling:
+                elif field_name == 'time' and field_value:
+                    field_value = try_parse_time(field_value)
+
+                # Handle numeric fields - convert to appropriate type or set to None if empty
+                elif field_value.isdigit():
+                    field_value = int(field_value) if field_value.isdigit() else field_value
+                
+                # For empty string values, you may decide to set them to None or keep as is depending on your requirement
+                elif field_value == '':
+                    field_value = None
+
+                setattr(test, field_name, field_value)
+        
+        try:
+            db.session.commit()
+            flash('Test updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {e}', 'error')
+        
+        return redirect(url_for('list_tests'))  # Ensure 'list_tests' is a valid endpoint
+
+    test_data = {column.name: getattr(test, column.name) for column in test.__table__.columns}
+    test_structure = load_form_structure(JSON_PATH)  # Ensure this function returns the structure
+    return render_template('edit_test.html', test=test, test_data=test_data, test_structure=test_structure)
+
+
+@app.route('/delete-test/<int:test_id>', methods=['POST'])
+def delete_test(test_id):
+    TestData = get_test_data_model()
+    test = TestData.query.get_or_404(test_id)  # Ensure TestData is correctly imported
+    
+    try:
+        db.session.delete(test)
+        db.session.commit()
+        flash('Test successfully deleted!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting test: {str(e)}', 'error')
+        
+    return redirect(url_for('list_tests'))  # Adjust 'list_tests' to your actual view function that lists all tests
+
 
 @app.route('/tests')
 def list_tests():
@@ -192,7 +266,7 @@ def edit_procedure(procedure_id):
 
             # Convert empty strings to None for floats
             if value == '':
-                value = None  # General case for non-float fields
+                    value = None  # General case for non-float fields
 
             # Special handling for date fields
             elif field_name == 'date_created':  # Adapt for any other date fields you have
@@ -208,13 +282,10 @@ def edit_procedure(procedure_id):
         flash('Procedure updated successfully.', 'success')
         return redirect(url_for('list_procedures'))
 
-    # For GET requests or initial page load
+    # Load initial form data
     procedure_data = {column.name: getattr(procedure, column.name) for column in procedure.__table__.columns}
-    procedure_structure = load_form_structure(PROCEDURES_JSON_PATH)  # Load the JSON structure for form fields
-    return render_template('edit_procedure.html', 
-                           procedure=procedure, 
-                           procedure_data=procedure_data, 
-                           procedure_structure=procedure_structure)
+    procedure_structure = load_form_structure(PROCEDURES_JSON_PATH)  # Load the structure for form rendering
+    return render_template('edit_procedure.html', procedure=procedure, procedure_data=procedure_data, procedure_structure=procedure_structure)
 
 
 

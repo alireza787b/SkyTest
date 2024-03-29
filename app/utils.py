@@ -1,4 +1,7 @@
 # utils.py
+
+from datetime import datetime
+
 def generate_unique_proc_id(Procedure, submitted_id):
     """Generates a unique ID by incrementing submitted_id until it's unique."""
     unique_id = submitted_id
@@ -16,3 +19,13 @@ def generate_unique_proc_title(Procedure, submitted_title):
         unique_title = f"{submitted_title}-{counter}"
         counter += 1
     return unique_title
+
+
+def try_parse_time(time_str):
+    for fmt in ("%H:%M:%S", "%H:%M"):
+        try:
+            return datetime.strptime(time_str, fmt).time()
+        except ValueError:
+            continue
+    return None  # Or raise an exception, log an error, etc.
+
