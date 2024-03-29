@@ -9,7 +9,9 @@ from config import DATABASE_PATH, TITLE, JSON_PATH, PROCEDURES_JSON_PATH, UPLOAD
 from .utils import convert_to_time, create_test_directory, generate_unique_proc_id, generate_unique_proc_title, save_uploaded_files, try_parse_time
 from app.models import get_procedure_model, get_test_data_model
 from app.forms import load_form_structure
-
+import tempfile
+import zipfile
+    
 @app.route('/')
 def dashboard():
     TestData = get_test_data_model()
@@ -442,11 +444,6 @@ def import_data():
     if file.filename == '':
         flash('No selected file', 'error')
         return redirect(url_for('data_management'))
-
-    import tempfile
-    import zipfile
-    import os
-    from flask import flash, redirect, url_for
 
     with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
         file.save(tmpfile.name)
