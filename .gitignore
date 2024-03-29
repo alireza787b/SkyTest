@@ -7,6 +7,8 @@ instance/
 attachments/
 .DS_Store
 
+backup.zip
+
 # C extensions
 *.so
 
