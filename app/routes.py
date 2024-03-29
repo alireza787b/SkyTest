@@ -3,20 +3,10 @@ from flask import render_template, request, url_for, redirect, flash
 import json
 import os
 from . import app, db
-from .db_init import dynamic_models
 from config import TITLE, JSON_PATH, PROCEDURES_JSON_PATH
 from .utils import generate_unique_proc_id, generate_unique_proc_title
-
-
-def get_db_model():
-    # First, get the TestData model from dynamic_models
-    TestData = dynamic_models.get('TestData')
-    return TestData
-
-def load_form_structure(structure_json):
-    """Loads the form structure from a JSON file."""
-    with open(structure_json, 'r') as json_file:
-        return json.load(json_file)
+from app.models import get_procedure_model, get_test_data_model
+from app.forms import load_form_structure
 
 @app.route('/')
 def home():
@@ -27,8 +17,8 @@ def home():
 def display_form():
     """Displays the form for data entry."""
     form_structure = load_form_structure(JSON_PATH)
-    TestData = get_db_model()
-    Procedure = dynamic_models.get('Procedure')
+    TestData = get_test_data_model()
+    Procedure = get_procedure_model()
     
     if Procedure is None:
         flash("Error: Procedure model not found.", "error")
@@ -48,7 +38,7 @@ def display_form():
 @app.route('/submit-form', methods=['POST'])
 def submit_form():
     """Handles form submission and data persistence."""
-    form_structure, TestData = load_form_structure(JSON_PATH), get_db_model()
+    form_structure, TestData = load_form_structure(JSON_PATH), get_test_data_model()
     if not TestData:
         flash("Error: TestData model not found.", "error")
         return redirect(url_for('home'))
@@ -66,7 +56,7 @@ def submit_form():
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete_entry(id):
     """Deletes a specific data entry."""
-    TestData = get_db_model()
+    TestData = get_test_data_model()
     db.session.delete(TestData.query.get_or_404(id))
     db.session.commit()
     return redirect(url_for('display_data'))
@@ -74,7 +64,7 @@ def delete_entry(id):
 @app.route('/tests')
 def list_tests():
     """Lists summaries of all tests."""
-    TestData = get_db_model() 
+    TestData = get_test_data_model() 
     fields = [TestData.id, TestData.test_title, TestData.date if hasattr(TestData, 'date') else None]
     tests = TestData.query.with_entities(*[f for f in fields if f]).all()
     return render_template('tests_list.html', tests=tests)
@@ -82,14 +72,44 @@ def list_tests():
 @app.route('/test/<int:test_id>')
 def view_test(test_id):
     """Displays detailed view of a single test."""
-    TestData = get_db_model()
-    if not TestData:
-        flash("Error: TestData model not found.", "error")
+    TestData = get_test_data_model()
+    Procedure = get_procedure_model()
+
+    if not TestData or not Procedure:
+        flash("Error: Models not found.", "error")
         return redirect(url_for('home'))
     
-    test, form_structure = TestData.query.get_or_404(test_id), load_form_structure(JSON_PATH)
-    test_details = {f['label']: getattr(test, f['name'], "N/A") or "N/A" for g in form_structure['formGroups'] for f in g['fields']}
+    test = TestData.query.get_or_404(test_id)
+    form_structure = load_form_structure(JSON_PATH)
+    test_details = {}
+
+    # Flag to mark if we have handled the procedure ID
+    procedure_id_handled = False
+
+    for group in form_structure['formGroups']:
+        for field in group['fields']:
+            field_value = getattr(test, field['name'], "N/A") or "N/A"
+            field_data = {"value": field_value}
+
+            if 'unit' in field:
+                field_data['unit'] = field['unit']
+
+            if field['name'] == 'procedure_id':
+                # Handle procedure ID and title together
+                procedure_id_handled = True
+                procedure = Procedure.query.filter_by(id=field_value).first()
+                procedure_title = procedure.title if procedure else 'N/A'
+                # Assuming you want the title right after the ID
+                test_details[field['label']] = field_data
+                test_details['Procedure Title'] = {'value': procedure_title}
+            elif not procedure_id_handled or field['name'] != 'procedure_id':
+                test_details[field['label']] = field_data
+
     return render_template('test_detail.html', test_details=test_details)
+
+
+
+
 
 
 #################
@@ -98,7 +118,7 @@ def view_test(test_id):
 @app.route('/add-procedure', methods=['GET'])
 def display_procedure_form():
     procedure_structure = load_form_structure(PROCEDURES_JSON_PATH)  # Assuming this function can handle both tests and procedure JSON paths
-    Procedure = dynamic_models.get('Procedure')
+    Procedure = get_procedure_model()
     
     last_procedure = Procedure.query.order_by(Procedure.id.desc()).first() if Procedure else None
     next_id = last_procedure.id + 1 if last_procedure else 1
@@ -113,7 +133,7 @@ def display_procedure_form():
 @app.route('/submit-procedure', methods=['POST'])
 def submit_procedure():
     procedure_structure = load_form_structure(PROCEDURES_JSON_PATH)
-    Procedure = dynamic_models.get('Procedure')
+    Procedure = get_procedure_model()
     if Procedure is None:
         flash("Error: Procedure model not found.", "error")
         return redirect(url_for('display_procedure_form'))
@@ -150,13 +170,13 @@ def submit_procedure():
 
 @app.route('/procedures')
 def list_procedures():
-    Procedure = dynamic_models.get('Procedure')
+    Procedure = get_procedure_model()
     procedures = Procedure.query.all()
     return render_template('procedures_list.html', procedures=procedures)
 
 @app.route('/procedure/<int:procedure_id>')
 def view_procedure(procedure_id):
-    Procedure = dynamic_models.get('Procedure')
+    Procedure = get_procedure_model()
     if Procedure is None:
         flash("Error: Procedure model not found.", "error")
         return redirect(url_for('home'))

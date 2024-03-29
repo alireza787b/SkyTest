@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>SkyTest Form</title>
+    <style>
+        .unit-label {
+            font-size: 0.8em;
+            margin-left: 5px;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
+    <!-- Navigation Link to Home -->
+    <p><a href="{{ url_for('home') }}">Back to Home</a></p>
     <!-- Display flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -22,8 +31,6 @@
                     <div>
 
                         {% if field.name == "procedure_id" %}
-                        <!-- Procedure Title Dropdown -->
-                       
                             <label for="procedure_id">Procedure Title</label>
                             <select name="procedure_id" id="procedure_id" required>
                                 <option value="">Select a Procedure</option>
@@ -31,7 +38,6 @@
                                     <option value="{{ id }}">{{ title }}</option>
                                 {% endfor %}
                             </select>
-
                         {% else %}
                             <label for="{{ field.name }}">{{ field.label }}</label>
                         {% endif %}
@@ -40,13 +46,11 @@
                         {% if field.name == "test_id" %}
                             <input type="text" name="{{ field.name }}" id="{{ field.name }}" value="{{ next_test_id }}" readonly>
                         {% elif field.name == "procedure_id" %}
-
                         {% elif field.name == "date" %}
                             <input type="date" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_date }}">
                         {% elif field.name == "time" %}
                             <input type="time" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_time }}">
                         {% elif field.type == "select" and field.name != "procedure_id" %}
-                            <!-- Existing dropdown fields -->
                             <select name="{{ field.name }}" id="{{ field.name }}" {% if field.required %}required{% endif %}>
                                 {% for option in field.options %}
                                     <option value="{{ option }}">{{ option }}</option>
@@ -56,6 +60,9 @@
                             <textarea name="{{ field.name }}" id="{{ field.name }}" placeholder="{{ field.hint }}" {% if field.required %}required{% endif %}></textarea>
                         {% else %}
                             <input type="{{ field.type }}" name="{{ field.name }}" id="{{ field.name }}" placeholder="{{ field.hint }}" {% if field.required %}required{% endif %} {% if field.step %}step="{{ field.step }}"{% endif %}>
+                            {% if field.unit %}
+                                <span class="unit-label">({{ field.unit }})</span>
+                            {% endif %}
                         {% endif %}
                     </div>
                 {% endfor %}
