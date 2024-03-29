@@ -9,9 +9,13 @@ from app.models import get_procedure_model, get_test_data_model
 from app.forms import load_form_structure
 
 @app.route('/')
-def home():
-    """Render the home page with configurable title."""
-    return render_template('index.html', page_title=TITLE)
+def dashboard():
+    TestData = get_test_data_model()
+    Procedure = get_procedure_model()
+    num_procedures = Procedure.query.count()
+    num_tests = TestData.query.count()
+    return render_template('dashboard.html', num_procedures=num_procedures, num_tests=num_tests)
+
 
 @app.route('/form', methods=['GET'])
 def display_form():
@@ -22,7 +26,7 @@ def display_form():
     
     if Procedure is None:
         flash("Error: Procedure model not found.", "error")
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
     
     # Fetch all procedures and prepare a list of (id, title) tuples
     procedure_options = Procedure.query.with_entities(Procedure.id, Procedure.title).all()
@@ -41,7 +45,7 @@ def submit_form():
     form_structure, TestData = load_form_structure(JSON_PATH), get_test_data_model()
     if not TestData:
         flash("Error: TestData model not found.", "error")
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
 
     new_entry = TestData()
     for field in (f for g in form_structure['formGroups'] for f in g['fields']):
@@ -77,7 +81,7 @@ def view_test(test_id):
 
     if not TestData or not Procedure:
         flash("Error: Models not found.", "error")
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
     
     test = TestData.query.get_or_404(test_id)
     form_structure = load_form_structure(JSON_PATH)
@@ -132,6 +136,7 @@ def display_procedure_form():
 
 @app.route('/submit-procedure', methods=['POST'])
 def submit_procedure():
+    # Assuming load_form_structure and get_procedure_model are defined elsewhere and imported correctly
     procedure_structure = load_form_structure(PROCEDURES_JSON_PATH)
     Procedure = get_procedure_model()
     if Procedure is None:
@@ -140,46 +145,92 @@ def submit_procedure():
 
     new_procedure = Procedure()
 
+    # Handling the unique ID and title
     submitted_id = request.form.get('procedure_id', None)
     submitted_title = request.form.get('title', None)
-
-    # Generate unique ID and title
     unique_id = generate_unique_proc_id(Procedure, submitted_id)
     unique_title = generate_unique_proc_title(Procedure, submitted_title)
-
-    # Set the unique ID and title along with other fields
     setattr(new_procedure, 'procedure_id', unique_id)
     setattr(new_procedure, 'title', unique_title)
     
+    # Processing other fields
     for field in (f for g in procedure_structure['procedureGroups'] for f in g['fields']):
         if field['name'] not in ['procedure_id', 'title']:
             field_value = request.form.get(field['name'], '')
-            if field_value == '':
+            # Special handling for date fields
+            if field['type'] == 'date' and field_value:
+                # Convert string date to datetime.date object
+                field_value = datetime.strptime(field_value, '%Y-%m-%d').date()
+            elif field['type'] == 'float' and field_value:
+                # Convert string to float
+                field_value = float(field_value)
+            elif not field_value:
                 # Assign a default value or handle the empty string case
-                if field['type'] == 'float':
-                    field_value = 0.0
-                else:
-                    field_value = None
+                field_value = None  # Or other appropriate default value
             setattr(new_procedure, field['name'], field_value)
 
     db.session.add(new_procedure)
-    db.session.commit()
-    flash('Procedure successfully added with unique ID and Title!', 'success')
+    try:
+        db.session.commit()
+        flash('Procedure successfully added with unique ID and Title!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An error occurred: {str(e)}', 'error')
+        
     return redirect(url_for('display_procedure_form'))
+
+@app.route('/edit-procedure/<int:procedure_id>', methods=['GET', 'POST'])
+def edit_procedure(procedure_id):
+    Procedure = get_procedure_model()  # Assuming this gets your dynamic model
+    procedure = Procedure.query.get_or_404(procedure_id)
+    
+    if request.method == 'POST':
+        for field_name, value in request.form.items():
+            # Skip non-editable fields
+            if field_name in ['procedure_id', 'created_at']:
+                continue
+
+            # Convert empty strings to None for floats
+            if value == '':
+                value = None  # General case for non-float fields
+
+            # Special handling for date fields
+            elif field_name == 'date_created':  # Adapt for any other date fields you have
+                try:
+                    value = datetime.strptime(value, '%Y-%m-%d').date()
+                except ValueError:
+                    value = None  # In case of invalid date string
+                
+            # Assign the value to the model
+            setattr(procedure, field_name, value)
+        
+        db.session.commit()
+        flash('Procedure updated successfully.', 'success')
+        return redirect(url_for('list_procedures'))
+
+    # For GET requests or initial page load
+    procedure_data = {column.name: getattr(procedure, column.name) for column in procedure.__table__.columns}
+    procedure_structure = load_form_structure(PROCEDURES_JSON_PATH)  # Load the JSON structure for form fields
+    return render_template('edit_procedure.html', 
+                           procedure=procedure, 
+                           procedure_data=procedure_data, 
+                           procedure_structure=procedure_structure)
+
 
 
 @app.route('/procedures')
 def list_procedures():
     Procedure = get_procedure_model()
-    procedures = Procedure.query.all()
+    procedures = Procedure.query.order_by(Procedure.date_created.desc()).all()
     return render_template('procedures_list.html', procedures=procedures)
+
 
 @app.route('/procedure/<int:procedure_id>')
 def view_procedure(procedure_id):
     Procedure = get_procedure_model()
     if Procedure is None:
         flash("Error: Procedure model not found.", "error")
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
     
     procedure = Procedure.query.get_or_404(procedure_id)
     procedure_structure = load_form_structure(PROCEDURES_JSON_PATH)  # Assuming this function can now handle both test and procedure JSON paths
@@ -194,3 +245,17 @@ def view_procedure(procedure_id):
     
     return render_template('procedure_detail.html', procedure_details=procedure_details)
 
+@app.route('/delete-procedure/<int:procedure_id>', methods=['POST'])
+def delete_procedure(procedure_id):
+    Procedure = get_procedure_model()
+    procedure = Procedure.query.get_or_404(procedure_id)
+    
+    try:
+        db.session.delete(procedure)
+        db.session.commit()
+        flash('Procedure successfully deleted!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting procedure: {str(e)}', 'error')
+        
+    return redirect(url_for('list_procedures'))

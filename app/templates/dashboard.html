@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Test Management System{% endblock %}
+
+{% block content %}
+<h1>Welcome to the Test Management System</h1>
+<p>This is the main dashboard where you can manage tests and procedures efficiently.</p>
+
+<div class="row my-4">
+    <div class="col-md-6">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Procedures</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ num_procedures }} Procedures</h5>
+                <p class="card-text">Manage and review testing procedures.</p>
+                <a href="{{ url_for('list_procedures') }}" class="btn btn-light">View Procedures</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Tests</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ num_tests }} Tests</h5>
+                <p class="card-text">Review and analyze test results.</p>
+                <a href="{{ url_for('list_tests') }}" class="btn btn-light">View Test List</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="list-group">
+    <a href="{{ url_for('display_form') }}" class="list-group-item list-group-item-action">Add a Test</a>
+    <a href="{{ url_for('display_procedure_form') }}" class="list-group-item list-group-item-action">Add a New Procedure</a>
+</div>
+{% endblock %}

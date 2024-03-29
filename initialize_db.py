@@ -34,4 +34,4 @@ def initialize_database(tests_json_path, procedures_json_path, replace_existing=
             print("Database initialization complete.")
 
 # Make sure to pass both JSON paths to the function
-initialize_database(JSON_PATH, PROCEDURES_JSON_PATH, replace_existing=True)
+initialize_database(JSON_PATH, PROCEDURES_JSON_PATH, replace_existing=False)

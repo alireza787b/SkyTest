@@ -1,20 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Procedure Detail</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Procedure Detail{% endblock %}
+
+{% block content %}
+<div class="my-4">
     <h1>Procedure Detail</h1>
-    <table>
-        {% for label, value in procedure_details.items() %}
-        <tr>
-            <td><strong>{{ label }}:</strong></td>
-            <td>{{ value or 'N/A' }}</td>
-        </tr>
-        {% endfor %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for label, value in procedure_details.items() %}
+            <tr>
+                <td><strong>{{ label }}:</strong></td>
+                <td>{{ value or 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-    <!-- Navigation Link -->
-    <p><a href="{{ url_for('list_tests') }}">Back to List of Procedure</a></p>
-</body>
-</html>
+    <p><a href="{{ url_for('list_tests') }}" class="btn btn-secondary">Back to List of Procedures</a></p>
+</div>
+{% endblock %}

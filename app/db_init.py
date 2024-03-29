@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from app import db
 from config import JSON_PATH, PROCEDURES_JSON_PATH
 dynamic_models = {}
@@ -11,7 +12,13 @@ def create_models_from_json(json_path, model_name, table_name):
         model_attributes = {'__tablename__': table_name, '__table_args__': {'extend_existing': True}}
         model_attributes['id'] = db.Column(db.Integer, primary_key=True)
         
-        # Determine the appropriate group key ('formGroups' for tests, 'procedureGroups' for procedures)
+        # Add fields for date, time, and an automatic timestamp
+        model_attributes['date'] = db.Column(db.Date)
+        model_attributes['time'] = db.Column(db.Time)
+        # Automatically capture the timestamp when a new record is created
+        model_attributes['created_at'] = db.Column(db.DateTime, default=db.func.now())
+
+        # Determine the appropriate group key
         group_key = 'formGroups' if 'formGroups' in data else 'procedureGroups'
         
         # Iterate through all groups and fields to add them to the model attributes
@@ -25,12 +32,16 @@ def create_models_from_json(json_path, model_name, table_name):
                     model_attributes[field_name] = db.Column(db.Float)
                 elif field_type == 'textarea':
                     model_attributes[field_name] = db.Column(db.Text)
-                # Add more field types as needed
-                
+                elif field_type == 'date':
+                    model_attributes[field_name] = db.Column(db.Date)
+                elif field_type == 'time':
+                    model_attributes[field_name] = db.Column(db.Time)
+                # Consider adding more field types as needed
+
         # Create a single model class using the aggregated model attributes
         model_class = type(model_name, (db.Model,), model_attributes)
         dynamic_models[model_name] = model_class
-
+        
 # Example usage:
 create_models_from_json(JSON_PATH, 'TestData', 'test_data')
 create_models_from_json(PROCEDURES_JSON_PATH, 'Procedure', 'procedure_data')
