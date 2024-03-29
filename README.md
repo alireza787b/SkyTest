@@ -56,9 +56,6 @@ Ensure Python and Flask are installed on your system. SkyTest utilizes Flask, a 
 SkyTest's form fields and structures are defined in JSON files within the `definitions` folder. It is essential to maintain the "attachments" field name in the tests structure JSON for the application to operate normally.
 Other settings can be customized through the `config.py`.
 
-## New: Import/Export & Responsive Design
-
-SkyTest now includes an import/export feature for comprehensive data management and has been updated with a responsive design for optimal viewing on all devices.
 
 ## Contributing
 
