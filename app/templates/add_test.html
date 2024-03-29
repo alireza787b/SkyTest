@@ -20,14 +20,33 @@
                 <legend>{{ group.groupTitle }}</legend>
                 {% for field in group.fields %}
                     <div>
-                        <label for="{{ field.name }}">{{ field.label }}</label>
+
+                        {% if field.name == "procedure_id" %}
+                        <!-- Procedure Title Dropdown -->
+                       
+                            <label for="procedure_id">Procedure Title</label>
+                            <select name="procedure_id" id="procedure_id" required>
+                                <option value="">Select a Procedure</option>
+                                {% for id, title in procedure_options %}
+                                    <option value="{{ id }}">{{ title }}</option>
+                                {% endfor %}
+                            </select>
+
+                        {% else %}
+                            <label for="{{ field.name }}">{{ field.label }}</label>
+                        {% endif %}
+
+                        <!-- Handle specific fields uniquely -->
                         {% if field.name == "test_id" %}
                             <input type="text" name="{{ field.name }}" id="{{ field.name }}" value="{{ next_test_id }}" readonly>
+                        {% elif field.name == "procedure_id" %}
+
                         {% elif field.name == "date" %}
-                            <input type="date" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_date }}" >
+                            <input type="date" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_date }}">
                         {% elif field.name == "time" %}
-                            <input type="time" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_time }}" >
-                        {% elif field.type == "select" %}
+                            <input type="time" name="{{ field.name }}" id="{{ field.name }}" value="{{ current_time }}">
+                        {% elif field.type == "select" and field.name != "procedure_id" %}
+                            <!-- Existing dropdown fields -->
                             <select name="{{ field.name }}" id="{{ field.name }}" {% if field.required %}required{% endif %}>
                                 {% for option in field.options %}
                                     <option value="{{ option }}">{{ option }}</option>
@@ -42,6 +61,7 @@
                 {% endfor %}
             </fieldset>
         {% endfor %}
+        
         <button type="submit">Submit</button>
     </form>
 </body>

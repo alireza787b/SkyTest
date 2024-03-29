@@ -1,0 +1,144 @@
+{
+    "procedureGroups": [{
+            "groupTitle": "Procedure Identification",
+            "fields": [{
+                    "label": "Procedure ID",
+                    "name": "procedure_id",
+                    "type": "text",
+                    "required": true,
+                    "hint": "Unique identifier for this specific procedure."
+                },
+                {
+                    "label": "Title",
+                    "name": "title",
+                    "type": "text",
+                    "required": true,
+                    "hint": "Enter the title of the procedure."
+                },
+                {
+                    "label": "Category",
+                    "name": "category",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Category of the procedure (e.g., Calibration, Diagnostics, Flight Performance)."
+                },
+                {
+                    "label": "Created By",
+                    "name": "created_by",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Name of the individual or team creating this procedure."
+                },
+                {
+                    "label": "Date Created",
+                    "name": "date_created",
+                    "type": "date",
+                    "required": true,
+                    "hint": "Date the procedure was created."
+                }
+            ]
+        },
+        {
+            "groupTitle": "Procedure Details",
+            "fields": [{
+                    "label": "Goal",
+                    "name": "goal",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Describe the objective of this procedure."
+                },
+                {
+                    "label": "Method",
+                    "name": "method",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Detail the method of execution, including step-by-step actions."
+                },
+                {
+                    "label": "Prototype",
+                    "name": "prototype",
+                    "type": "text",
+                    "required": false,
+                    "hint": "Associated prototype, if any."
+                },
+                {
+                    "label": "Iterations",
+                    "name": "iterations",
+                    "type": "number",
+                    "step": "1",
+                    "value": "1",
+                    "min": "1",
+                    "required": false,
+                    "hint": "Number of iterations needed to validate the procedure."
+                },
+                {
+                    "label": "Test Parameters",
+                    "name": "test_parameters",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Specific parameters to be observed or manipulated during the procedure."
+                },
+                {
+                    "label": "Crew Needed",
+                    "name": "crew_needed",
+                    "type": "number",
+                    "step": "1",
+                    "value": "1",
+                    "min": "1",
+                    "required": false,
+                    "hint": "Minimum number of personnel required to safely execute the procedure."
+                }
+            ]
+        },
+        {
+            "groupTitle": "Safety and Compliance",
+            "fields": [{
+                    "label": "Safety Considerations",
+                    "name": "safety_considerations",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Identify any safety risks and the measures taken to mitigate them."
+                },
+                {
+                    "label": "Failsafe Measures",
+                    "name": "failsafe_measures",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Outline the failsafe procedures in case of unexpected issues or emergencies."
+                },
+                {
+                    "label": "Regulatory Compliance",
+                    "name": "regulatory_compliance",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Describe any regulatory compliance considerations or requirements."
+                }
+            ]
+        },
+        {
+            "groupTitle": "Documentation and Analysis",
+            "fields": [{
+                    "label": "Documentation Required",
+                    "name": "documentation_required",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Specify any documentation that must be completed as part of the procedure."
+                },
+                {
+                    "label": "Success Criteria",
+                    "name": "success_criteria",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "Define the criteria that will be used to evaluate the success of the procedure."
+                },
+                {
+                    "label": "Analysis Method",
+                    "name": "analysis_method",
+                    "type": "textarea",
+                    "required": false,
+                    "hint": "If applicable, describe the method for analyzing the results of the procedure."
+                }
+            ]
+        }
+    ]
+}

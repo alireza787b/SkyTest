@@ -23,8 +23,8 @@
                     "hint": "Unique identifier for the prototype."
                 },
                 {
-                    "label": "Test Document ID",
-                    "name": "test_doc_id",
+                    "label": "Procedure ID",
+                    "name": "procedure_id",
                     "type": "text",
                     "required": false,
                     "hint": "Identifier for this test documentation."
@@ -91,6 +91,7 @@
                     "name": "wind_speed_direction",
                     "type": "text",
                     "required": false,
+                    "unit": "degrees@m/s",
                     "hint": "Wind speed (in m/s) and direction during the test."
                 },
                 {
@@ -98,6 +99,7 @@
                     "name": "temperature",
                     "type": "number",
                     "step": "0.1",
+                    "unit": "C",
                     "required": false,
                     "hint": "Temperature in Celsius at the test location."
                 }
@@ -118,6 +120,7 @@
                     "name": "start_battery_voltage",
                     "type": "number",
                     "step": "0.1",
+                    "unit": "v",
                     "required": false,
                     "hint": "Voltage of the drone's battery before takeoff, in volts."
                 }
@@ -137,6 +140,7 @@
                     "name": "planned_altitude",
                     "type": "number",
                     "step": "0.1",
+                    "unit": "m",
                     "required": false,
                     "hint": "Planned maximum altitude for the test, in meters."
                 },
@@ -145,6 +149,7 @@
                     "name": "planned_speed",
                     "type": "number",
                     "step": "0.1",
+                    "unit": "m/s",
                     "required": false,
                     "hint": "Planned maximum speed for the test, in m/s."
                 },
@@ -154,6 +159,7 @@
                     "type": "time",
                     "value": "00:00",
                     "min": "00:00",
+                    "unit": "mm:ss",
                     "required": false,
                     "hint": "Planned duration of the test, formatted as 'minutes:seconds'."
                 },
@@ -172,6 +178,7 @@
                     "label": "Start Time",
                     "name": "start_time",
                     "type": "time",
+                    "unit": "mm:ss",
                     "required": false,
                     "hint": "Actual start time of the flight."
                 },
@@ -179,6 +186,7 @@
                     "label": "End Time",
                     "name": "end_time",
                     "type": "time",
+                    "unit": "mm:ss",
                     "required": false,
                     "hint": "Actual end time of the flight."
                 },
@@ -186,6 +194,7 @@
                     "label": "Flight Duration",
                     "name": "flight_duration",
                     "type": "text",
+                    "unit": "mm:ss",
                     "required": false,
                     "hint": "Total duration of the flight, formatted as 'minutes:seconds'."
                 },
@@ -194,6 +203,7 @@
                     "name": "max_altitude_achieved",
                     "type": "number",
                     "step": "0.1",
+                    "unit": "m",
                     "required": false,
                     "hint": "Maximum altitude achieved during the flight, in meters."
                 },
@@ -202,6 +212,7 @@
                     "name": "max_speed_achieved",
                     "type": "number",
                     "step": "0.1",
+                    "unit": "m/s",
                     "required": false,
                     "hint": "Maximum speed achieved during the flight, in m/s."
                 },
@@ -224,6 +235,7 @@
                     "name": "end_battery_voltage",
                     "type": "number",
                     "step": "0.1",
+                    "unit": "v",
                     "required": false,
                     "hint": "Voltage of the drone's battery after landing, in volts."
                 },

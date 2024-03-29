@@ -2,14 +2,18 @@ from os.path import exists
 import os
 from app import db, app
 from app.db_init import create_models_from_json
-from config import JSON_PATH
-def initialize_database(json_path, replace_existing=False):
+from config import JSON_PATH, PROCEDURES_JSON_PATH  # Ensure PROCEDURES_JSON_PATH is defined in config.py
+
+def initialize_database(tests_json_path, procedures_json_path, replace_existing=False):
     """
-    Documentation...
+    Initializes the database with tables based on the provided JSON structures for tests and procedures.
+    
+    :param tests_json_path: Path to the JSON file defining the structure of the tests table.
+    :param procedures_json_path: Path to the JSON file defining the structure of the procedures table.
+    :param replace_existing: If True, replaces the existing database. Otherwise, initializes only if the database does not exist.
     """
     # Setting up an application context
     with app.app_context():
-        # Adjusted for direct app and db usage
         db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
         db_exists = exists(db_path)
 
@@ -18,19 +22,16 @@ def initialize_database(json_path, replace_existing=False):
             return
 
         if replace_existing or not db_exists:
-            if db_exists:
-                print("Replacing the existing database.")
-            else:
-                print("Creating a new database.")
+            print("Replacing the existing database." if db_exists else "Creating a new database.")
             
-            # Move db.drop_all() and db.create_all() after dynamically creating models
-            create_models_from_json(json_path)
+            # Dynamically create models for both tests and procedures before dropping or creating tables
+            create_models_from_json(tests_json_path, 'TestData', 'test_data')
+            create_models_from_json(procedures_json_path, 'Procedure', 'procedure_data')
             
-            # Now that models are defined and registered, create the tables
             db.drop_all()
             db.create_all()
 
-            print(f"Database initialization complete. Structure defined in '{json_path}' has been applied.")
+            print("Database initialization complete.")
 
-# Execute database initialization within the application context
-initialize_database(JSON_PATH, replace_existing=True)
+# Make sure to pass both JSON paths to the function
+initialize_database(JSON_PATH, PROCEDURES_JSON_PATH, replace_existing=True)

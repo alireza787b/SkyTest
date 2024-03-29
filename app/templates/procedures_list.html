@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>List of Procedures</title>
+</head>
+<body>
+    <h1>List of Procedures</h1>
+    <ul>
+        {% for procedure in procedures %}
+            <li>
+                <a href="{{ url_for('view_procedure', procedure_id=procedure.id) }}">
+                    {{ procedure.title }} - {{ procedure.date }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

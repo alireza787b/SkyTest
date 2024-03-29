@@ -12,6 +12,6 @@ db = SQLAlchemy(app)
 
 # Important: Import create_models_from_json after db is defined
 from app.db_init import create_models_from_json
-create_models_from_json(JSON_PATH)
+create_models_from_json(JSON_PATH, 'TestData', 'test_data')
 
 from . import routes
