@@ -1,16 +1,19 @@
 from datetime import datetime
 import shutil
 import zipfile
-from flask import render_template, request, send_file, send_from_directory, url_for, redirect, flash
+from flask import make_response, render_template, request, send_file, send_from_directory, url_for, redirect, flash
 import json
 import os
+
+from weasyprint import HTML
 from . import app, db
 from config import DATABASE_PATH, TITLE, JSON_PATH, PROCEDURES_JSON_PATH, UPLOAD_FOLDER
-from .utils import convert_to_time, create_test_directory, generate_unique_proc_id, generate_unique_proc_title, save_uploaded_files, try_parse_time
+from .utils import convert_to_time, create_test_directory, generate_unique_proc_id, generate_unique_proc_title, save_uploaded_files, try_parse_time, generate_html_content
 from app.models import get_procedure_model, get_test_data_model
 from app.forms import load_form_structure
 import tempfile
 import zipfile
+import shutil
     
 @app.route('/')
 def dashboard():
@@ -413,9 +416,7 @@ def data_management():
 
 @app.route('/export_data')
 def export_data():
-    import tempfile
-    import shutil
-    from flask import send_file
+    
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Copy the database file
@@ -485,3 +486,20 @@ def import_data():
             os.unlink(tmpfile.name)  # Remove the temp file
 
     return redirect(url_for('data_management'))
+
+@app.route('/test/<int:test_id>/export_pdf')
+def export_test_pdf(test_id):
+    TestData = get_test_data_model()
+    # Simulating fetching test data and form structure
+    test = TestData.query.get_or_404(test_id)
+    form_structure = load_form_structure(JSON_PATH)
+    
+    # Dynamic HTML generation based on form structure and test data
+    html_content = generate_html_content(form_structure, test)
+    pdf = HTML(string=html_content).write_pdf()
+    
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=test_{test_id}_details.pdf'
+    
+    return response

@@ -9,6 +9,10 @@
         margin-left: 5px;
         color: #777;
     }
+    /* Additional styling for the PDF export button */
+    .export-pdf-btn {
+        margin-right: 10px;
+    }
 </style>
 
 <div class="my-4">
@@ -24,7 +28,7 @@
                             <ul>
                                 {% for file in data.value %}
                                     {% if file %}
-                                        <li><a href="{{ url_for('download_file', test_id=test_id, filename=file) }}" download>{{ file }}</a>                                        </li>
+                                        <li><a href="{{ url_for('download_file', test_id=test_id, filename=file) }}" download>{{ file }}</a></li>
                                     {% endif %}
                                 {% endfor %}
                             </ul>
@@ -40,6 +44,10 @@
             </tbody>
         </table>
     </div>
-    <p><a href="{{ url_for('list_tests') }}" class="btn btn-secondary">Back to List of Tests</a></p>
+    <!-- PDF Export and Back to List buttons -->
+    <div class="mt-4">
+        <a href="{{ url_for('export_test_pdf', test_id=test_id) }}" class="btn btn-primary export-pdf-btn">Export as PDF</a>
+        <a href="{{ url_for('list_tests') }}" class="btn btn-secondary">Back to List of Tests</a>
+    </div>
 </div>
 {% endblock %}

@@ -74,3 +74,35 @@ def save_uploaded_files(uploaded_files, test_id):
             saved_files.append(filename)
 
     return saved_files
+
+def generate_html_content(form_structure, test):
+    # Updated HTML generation code to handle attachments
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Flight Test Detail</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/report_style.css') }}">
+    </head>
+    <body>
+        <h1>Flight Test Log Report</h1>
+    """
+    
+    html += '<div class="metadata">'
+    for group in form_structure['formGroups']:
+        for field in group['fields']:
+            field_value = getattr(test, field['name'], "N/A")
+            if field['name'] == 'attachments':  # Or the name of your attachment field
+                # Convert comma-separated file paths into a bullet list
+                files_list = field_value.split(',')
+                files_html = "<ul>" + "".join([f"<li>{file}</li>" for file in files_list if file]) + "</ul>"
+                html += f"<p><strong>{field['label']}:</strong> {files_html}</p>"
+            else:
+                html += f"<p><strong>{field['label']}:</strong> {field_value}</p>"
+    html += '</div>'
+    
+    current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+    html += f'<div class="footer">Report generated on: {current_date}</div>'
+    html += "</body></html>"
+    return html
+
