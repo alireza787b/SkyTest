@@ -9,9 +9,10 @@
         margin-left: 5px;
         color: #777;
     }
-    /* Additional styling for the PDF export button */
-    .export-pdf-btn {
-        margin-right: 10px;
+    .procedure-link {
+        text-decoration: underline;
+        color: #007bff;
+        cursor: pointer;
     }
 </style>
 
@@ -24,18 +25,28 @@
                 <tr>
                     <td><strong>{{ label }}:</strong></td>
                     <td>
-                        {% if data.is_files %}
-                            <ul>
-                                {% for file in data.value %}
-                                    {% if file %}
-                                        <li><a href="{{ url_for('download_file', test_id=test_id, filename=file) }}" download>{{ file }}</a></li>
-                                    {% endif %}
-                                {% endfor %}
-                            </ul>
+                        {% if label == 'Procedure ID' %}
+                        <a href="{{ url_for('view_procedure', procedure_id=data.value) }}" target="_blank">
+                            <i class="fas fa-external-link-alt" title="View Procedure Details"></i> 
+                        </a>{{ data.value }}
+                    {% elif label == 'Procedure Title' %}
+                        <a href="{{ url_for('view_procedure', procedure_id=procedure_id) }}" target="_blank">
+                            <i class="fas fa-external-link-alt" title="View Procedure Details"></i>
+                        </a> {{ data.value }}
                         {% else %}
-                            {{ data.value }}
-                            {% if data.unit %}
-                                <span class="unit">{{ data.unit }}</span>
+                            {% if data.is_files %}
+                                <ul>
+                                    {% for file in data.value %}
+                                        {% if file %}
+                                            <li><a href="{{ url_for('download_file', test_id=test_id, filename=file) }}" download>{{ file }}</a></li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                {{ data.value }}
+                                {% if data.unit %}
+                                    <span class="unit">{{ data.unit }}</span>
+                                {% endif %}
                             {% endif %}
                         {% endif %}
                     </td>

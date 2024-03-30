@@ -11,16 +11,17 @@
                 {
                     "label": "Prototype Name",
                     "name": "prototype_name",
-                    "type": "text",
+                    "type": "select",
+                    "options": ["Black Typhoon", "Quantix"],
                     "required": false,
                     "hint": "Enter the name of the prototype being tested."
                 },
                 {
-                    "label": "Prototype ID",
-                    "name": "prototype_id",
+                    "label": "Prototype MSN",
+                    "name": "prototype_MSN",
                     "type": "text",
                     "required": true,
-                    "hint": "Unique identifier for the prototype."
+                    "hint": "Unique identifier for the prototype manufacture serial number."
                 },
                 {
                     "label": "Procedure ID",

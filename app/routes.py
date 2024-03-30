@@ -234,9 +234,11 @@ def view_test(test_id):
                 procedure_id_handled = True
                 procedure = Procedure.query.filter_by(id=field_value).first()
                 procedure_title = procedure.procedure_title if procedure else 'N/A'
+                procedure_id = procedure.procedure_id if procedure else 'N/A'
                 # Assuming you want the title right after the ID
                 test_details[field['label']] = field_data
                 test_details['Procedure Title'] = {'value': procedure_title}
+                test_details['procedure_id'] = procedure_id
             elif not procedure_id_handled or field['name'] != 'procedure_id':
                 test_details[field['label']] = field_data
                 
@@ -244,8 +246,8 @@ def view_test(test_id):
     filenames = test.file_path.split(',') if test.file_path else []
     # Assuming 'Files' label is not already used; adjust as needed
     test_details['Files'] = {'value': filenames, 'is_files': True}
-
-    return render_template('test_detail.html', test_details=test_details, test_id=test_id)
+    procedure_id = test_details['procedure_id']
+    return render_template('test_detail.html', test_details=test_details, test_id=test_id, procedure_id=procedure_id)
 
 
 
@@ -503,3 +505,12 @@ def export_test_pdf(test_id):
     response.headers['Content-Disposition'] = f'attachment; filename=test_{test_id}_details.pdf'
     
     return response
+
+@app.route('/procedure/<int:procedure_id>/tests')
+def procedure_tests(procedure_id):
+    TestData = get_test_data_model()
+    Procedure = get_procedure_model()
+    procedure = Procedure.query.get_or_404(procedure_id)  # Assuming Procedure is your model name
+    tests = TestData.query.filter_by(procedure_id=procedure_id).all()
+    return render_template('procedure_tests.html', tests=tests, procedure=procedure)
+
