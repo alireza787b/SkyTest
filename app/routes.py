@@ -36,7 +36,7 @@ def display_form():
         return redirect(url_for('dashboard'))
     
     # Fetch all procedures and prepare a list of (id, title) tuples
-    procedure_options = Procedure.query.with_entities(Procedure.id, Procedure.title).all()
+    procedure_options = Procedure.query.with_entities(Procedure.id, Procedure.procedure_title).all()
     
     last_test = TestData.query.order_by(TestData.id.desc()).first()
     next_test_id = (last_test.id + 1) if last_test else 1
@@ -233,7 +233,7 @@ def view_test(test_id):
                 # Handle procedure ID and title together
                 procedure_id_handled = True
                 procedure = Procedure.query.filter_by(id=field_value).first()
-                procedure_title = procedure.title if procedure else 'N/A'
+                procedure_title = procedure.procedure_title if procedure else 'N/A'
                 # Assuming you want the title right after the ID
                 test_details[field['label']] = field_data
                 test_details['Procedure Title'] = {'value': procedure_title}
@@ -283,15 +283,15 @@ def submit_procedure():
 
     # Handling the unique ID and title
     submitted_id = request.form.get('procedure_id', None)
-    submitted_title = request.form.get('title', None)
+    submitted_title = request.form.get('procedure_title', None)
     unique_id = generate_unique_proc_id(Procedure, submitted_id)
     unique_title = generate_unique_proc_title(Procedure, submitted_title)
     setattr(new_procedure, 'procedure_id', unique_id)
-    setattr(new_procedure, 'title', unique_title)
+    setattr(new_procedure, 'procedure_title', unique_title)
     
     # Processing other fields
     for field in (f for g in procedure_structure['procedureGroups'] for f in g['fields']):
-        if field['name'] not in ['procedure_id', 'title']:
+        if field['name'] not in ['procedure_id', 'procedure_title']:
             field_value = request.form.get(field['name'], '')
             # Special handling for date fields
             if field['type'] == 'date' and field_value:

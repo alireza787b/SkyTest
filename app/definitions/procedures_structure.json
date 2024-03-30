@@ -9,8 +9,8 @@
                     "hint": "Unique identifier for this specific procedure."
                 },
                 {
-                    "label": "Title",
-                    "name": "title",
+                    "label": "Procedure Title",
+                    "name": "procedure_title",
                     "type": "text",
                     "required": true,
                     "hint": "Enter the title of the procedure."
