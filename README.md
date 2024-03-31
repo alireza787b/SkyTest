@@ -63,11 +63,11 @@ For those preferring Docker, SkyTest can be easily deployed using Docker contain
 2. **Run the Docker container**:
     Replace `<host_port>` with your desired host port to access the application:
     ```bash
-    docker run -d -p <host_port>:5562 alireza787b/skytest:latest
+    docker run -d --restart=always -p <host_port>:5562 alireza787b/skytest:latest
     ```
     For example, to run on port 8080:
     ```bash
-    docker run -d -p 8080:5562 alireza787b/skytest:latest
+    docker run -d --restart=always -p 8080:5562 alireza787b/skytest:latest
     ```
     Access the application at `http://<host_IP>:<host_port>` eg. `http://localhost:8080`.
 
