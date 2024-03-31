@@ -1,6 +1,17 @@
 # Use an official Python runtime as a base image
 FROM python:3.10-slim
 
+# Install system dependencies required by WeasyPrint
+RUN apt-get update && apt-get install -y \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    libffi-dev \
+    shared-mime-info \
+    libcairo2 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -11,10 +22,13 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Make port 80 available to the world outside this container
-EXPOSE 8000
+EXPOSE 5562
 
 # Define environment variable
 ENV NAME World
 
-# Run entrypoint.sh when the container launches
+# Make sure entrypoint.sh is executable
+RUN chmod +x /app/entrypoint.sh
+
+# Define the script to run on container startup
 ENTRYPOINT ["/app/entrypoint.sh"]
