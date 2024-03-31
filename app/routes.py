@@ -1,19 +1,21 @@
 from datetime import datetime
 import shutil
 import zipfile
-from flask import make_response, render_template, request, send_file, send_from_directory, url_for, redirect, flash
+from flask import make_response,jsonify, render_template, request, send_file, send_from_directory, url_for, redirect, flash
 import json
 import os
 
 from weasyprint import HTML
 from . import app, db
 from config import DATABASE_PATH, TITLE, JSON_PATH, PROCEDURES_JSON_PATH, UPLOAD_FOLDER
-from .utils import convert_to_time, create_test_directory, generate_unique_proc_id, generate_unique_proc_title, save_uploaded_files, try_parse_time, generate_html_content
-from app.models import get_procedure_model, get_test_data_model
+from .utils import convert_query_to_dataframe, convert_to_time, create_test_directory, generate_unique_proc_id, generate_unique_proc_title, save_uploaded_files, try_parse_time, generate_html_content
+from app.models import get_model_columns, get_procedure_model, get_test_data_model
 from app.forms import load_form_structure
 import tempfile
 import zipfile
 import shutil
+import pandas as pd
+from io import BytesIO
     
 @app.route('/')
 def dashboard():
@@ -25,7 +27,7 @@ def dashboard():
 
 
 @app.route('/form', methods=['GET'])
-def display_form():
+def add_test():
     """Displays the form for data entry."""
     form_structure = load_form_structure(JSON_PATH)
     TestData = get_test_data_model()
@@ -258,7 +260,7 @@ def view_test(test_id):
 # Procedures Routes
 
 @app.route('/add-procedure', methods=['GET'])
-def display_procedure_form():
+def add_procedure():
     procedure_structure = load_form_structure(PROCEDURES_JSON_PATH)  # Assuming this function can handle both tests and procedure JSON paths
     Procedure = get_procedure_model()
     
@@ -505,6 +507,39 @@ def export_test_pdf(test_id):
     response.headers['Content-Disposition'] = f'attachment; filename=test_{test_id}_details.pdf'
     
     return response
+
+
+
+@app.route('/export_database')
+def export_database():
+    format_type = request.args.get('format', 'json')
+    test_data_model = get_test_data_model()
+    procedure_model = get_procedure_model()
+
+    test_data_df = convert_query_to_dataframe(test_data_model.query.all(), column_order=get_model_columns(test_data_model))
+    procedure_data_df = convert_query_to_dataframe(procedure_model.query.all(), column_order=get_model_columns(procedure_model))
+
+    
+    if format_type == 'excel':
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            test_data_df.to_excel(writer, sheet_name='Test Data', index=False)
+            procedure_data_df.to_excel(writer, sheet_name='Procedure Data', index=False)
+        output.seek(0)
+        return send_file(output, download_name="database_export.xlsx", as_attachment=True, mimetype='application/vnd.ms-excel')
+    else:  # JSON format
+        # Create a zip file containing both JSON exports
+        zip_output = BytesIO()
+        with zipfile.ZipFile(zip_output, 'w') as zip_file:
+            for name, df in [('test_data', test_data_df), ('procedure_data', procedure_data_df)]:
+                # Use CustomJSONEncoder to serialize the DataFrame
+                json_str = df.to_json(orient='records', date_format='iso')
+                json_bytes = json_str.encode('utf-8')
+                zip_file.writestr(f'{name}.json', json_bytes)
+        
+        zip_output.seek(0)
+        return send_file(zip_output, download_name='database_export.zip', as_attachment=True, mimetype='application/zip')
+
 
 @app.route('/procedure/<int:procedure_id>/tests')
 def procedure_tests(procedure_id):

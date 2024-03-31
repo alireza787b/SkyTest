@@ -29,5 +29,13 @@
             <button type="submit" class="btn btn-warning">Import Data</button>
         </form>
     </div>
+    <div class="my-4">
+        <h2>Export Data</h2>
+        <p>Download a backup of the database.</p>
+        <div>
+            <a href="{{ url_for('export_database', format='json') }}" class="btn btn-info">Export as JSON</a>
+            <a href="{{ url_for('export_database', format='excel') }}" class="btn btn-success">Export as Excel</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

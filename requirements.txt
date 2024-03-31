@@ -25,3 +25,5 @@ Werkzeug==3.0.1
 zopfli==0.2.3
 weasyprint
 qrcode[pil]
+pandas
+xlsxwriter

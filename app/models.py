@@ -39,3 +39,9 @@ def get_procedure_id_by_title(procedure_title: str) -> str:
         procedure = ProcedureModel.query.filter_by(procedure_title=procedure_title).first()
         return getattr(procedure, 'procedure_id', None)
     return None
+
+def get_model_columns(model):
+    """
+    Retrieve the column names from an SQLAlchemy model in the order they're defined.
+    """
+    return [column.name for column in model.__table__.columns]

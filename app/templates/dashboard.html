@@ -4,8 +4,22 @@
 
 {% block content %}
 <h1>Welcome to the Test Management System</h1>
-<p>This is the main dashboard where you can manage tests and procedures efficiently.</p>
+<p>Welcome to your centralized hub for managing testing procedures and tests. This dashboard is designed to streamline the process of creating, reviewing, and analyzing tests and their procedures.</p>
 
+<h2>Getting Started</h2>
+<p>Start by following these simple steps:</p>
+<ol>
+    <li><strong>Define Procedures:</strong> Start by building some procedures for the tests. These procedures form the backbone of your testing framework, ensuring consistency and reliability.</li>
+    <li><strong>Create Tests:</strong> Once you have your procedures in place, you can create as many tests as you need for each procedure. This flexibility allows you to comprehensively test different scenarios under the same procedural umbrella.</li>
+    <li><strong>Review and Export:</strong> After conducting your tests, you can review and export everything for analysis. The system provides an easy way to revisit your data, allowing for continuous improvement and insights.</li>
+</ol>
+
+<h2>Important Notes</h2>
+<p>Please keep in mind:</p>
+<ul>
+    <li>Prototypes should be manually defined in the test structure JSON file.</li>
+    <li>While custom fields can be added using the procedure or test structure JSON files, essential fields such as ID, title, date, and attachments must not be removed.</li>
+</ul>
 <div class="row my-4">
     <div class="col-md-6">
         <div class="card text-white bg-primary mb-3">
@@ -30,8 +44,8 @@
 </div>
 
 <div class="list-group">
-    <a href="{{ url_for('display_form') }}" class="list-group-item list-group-item-action">Add a Test</a>
-    <a href="{{ url_for('display_procedure_form') }}" class="list-group-item list-group-item-action">Add a New Procedure</a>
+    <a href="{{ url_for('add_test') }}" class="list-group-item list-group-item-action">Add a Test</a>
+    <a href="{{ url_for('add_procedure') }}" class="list-group-item list-group-item-action">Add a New Procedure</a>
     <a href="{{ url_for('data_management') }}" class="list-group-item list-group-item-action">Import/Export Data</a>
 
 </div>

@@ -1,6 +1,7 @@
 # utils.py
 
-from datetime import datetime
+from datetime import datetime, time
+import json
 import os
 import qrcode
 
@@ -13,6 +14,8 @@ from werkzeug.utils import secure_filename
 from flask import request
 from io import BytesIO
 import base64
+from pandas import DataFrame
+
 
 def generate_unique_proc_id(Procedure, submitted_id):
     """Generates a unique ID by incrementing submitted_id until it's unique."""
@@ -126,7 +129,7 @@ def generate_html_content(form_structure, test):
                 <img src="{qr_code_data_uri}" alt="QR Code">
             </div>
         </div>
-        <h2>Test Title: {getattr(test, 'test_title', 'N/A')}</h2>
+        <h2>{getattr(test, 'test_title', 'N/A')}</h2>
     """
 
     # Proceed with generating the metadata section as before
@@ -154,3 +157,37 @@ def generate_html_content(form_structure, test):
     html += "</body></html>"
     return html
 
+
+from pandas import DataFrame
+
+def convert_query_to_dataframe(query_results, column_order=None):
+    """
+    Convert database query results to a pandas DataFrame, preserving column order.
+
+    Parameters:
+    - query_results: The result of a database query.
+    - column_order: Optional. A list of column names in the desired order.
+
+    Returns:
+    - DataFrame: A pandas DataFrame containing the query results.
+    """
+    # Create a list of dictionaries. Each dictionary represents a row from the query results.
+    data = [row.__dict__ for row in query_results]
+
+    if column_order is None and len(data) > 0:
+        # Attempt to determine column order dynamically from the first result if not provided
+        column_order = list(data[0].keys())
+        # Remove '_sa_instance_state' from the order, if present
+        column_order = [col for col in column_order if col != '_sa_instance_state']
+
+    # Convert the list of dictionaries to a pandas DataFrame using the specified column order
+    df = DataFrame(data, columns=column_order)
+
+    return df
+
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, time):
+            return obj.strftime('%H:%M:%S')
+        return json.JSONEncoder.default(self, obj)
