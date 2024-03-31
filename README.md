@@ -1,30 +1,87 @@
 
-# SkyTest Docker Image
+# SkyTest - Dynamic Data Collection Platform
 
-## Overview
+SkyTest is an innovative, web-based platform designed to facilitate the dynamic documentation and analysis of test logs across various projects. It stands out by allowing users to customize data collection forms via a simple JSON configuration, making it versatile for a wide range of projects.
 
-This Docker image packages the SkyTest application, a Flask-based web application designed for [describe the main functionality or purpose of your application]. It provides an easy setup and deployment on any system with Docker support, encapsulating the application and its dependencies in a portable container.
+## Key Features
 
-The source code and detailed documentation for SkyTest, along with additional resources and a demo, are available on GitHub: [alireza787b/SkyTest](https://github.com/alireza787b/SkyTest). This Docker image is built from the latest stable release of the SkyTest repository to ensure it includes the most recent features and updates.
+- **Bootstrap Full Responsiveness**: Ensures that the application is mobile-friendly and provides a seamless user experience across various devices and screen sizes.
+- **Import/Export Functionality**: Offers capabilities to import and export test data along with attachments and form definitions, allowing for easy data backup and restoration.
+- **Multiple File Upload**: Enhances data entry by allowing multiple files to be uploaded as part of test documentation, supporting images, videos, and log files. It is crucial to maintain the "attachments" field name in the tests structure JSON for the application to function correctly.
 
-## Quick Start
+## Getting Started
 
-To get SkyTest up and running with Docker, ensure Docker is installed on your system. For Docker installation instructions, refer to the official [Getting Started with Docker](https://docs.docker.com/get-started/) guide.
+Follow these instructions to set up SkyTest in your local environment.
 
-Run the following command to start SkyTest in a Docker container:
+### Prerequisites
 
-```sh
-docker run -d -p <host_port>:5562 alireza787b/skytest:latest
-```
+- Python 3
+- Flask
 
-Replace `<host_port>` with the port number on your host machine you'd like to use to access SkyTest. For example, to access the application at `localhost:8080`, you would use:
+Ensure Python and Flask are installed on your system. SkyTest utilizes Flask, a lightweight WSGI web application framework, to serve web content.
 
-```sh
-docker run -d -p 8080:5562 alireza787b/skytest:latest
-```
+### Environment Setup
 
-SkyTest will now be accessible at `http://localhost:<host_port>`, where `<host_port>` is the port number you specified.
+1. **Clone the repository**:
+    ```bash
+    git clone https://github.com/alireza787b/SkyTest.git
+    cd SkyTest
+    ```
 
-## Feedback and Contributions
+2. **Create and activate a virtual environment**:
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 
-We welcome your feedback and contributions to the SkyTest project. Please feel free to submit issues, pull requests, or suggestions to the [SkyTest GitHub repository](https://github.com/alireza787b/SkyTest). Your input is valuable in helping improve and evolve the application.
+3. **Install dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. **Initialize the database**:
+    *Note: This step is only required the first time you set up the project or whenever you make changes to the JSON configuration for the form fields.*
+    ```bash
+    python initialize_db.py
+    ```
+
+5. **Run the application**:
+    ```bash
+    python run.py
+    ```
+    The application will be available at `http://localhost:5562` (or whatever port is defined in the `config.py`).
+
+## Running with Docker
+
+For those preferring Docker, SkyTest can be easily deployed using Docker containers.
+
+1. **Pull the Docker image**:
+    ```bash
+    docker pull alireza787b/skytest:latest
+    ```
+
+2. **Run the Docker container**:
+    Replace `<host_port>` with your desired host port to access the application:
+    ```bash
+    docker run -d -p <host_port>:5562 alireza787b/skytest:latest
+    ```
+    For example, to run on port 8080:
+    ```bash
+    docker run -d -p 8080:5562 alireza787b/skytest:latest
+    ```
+    Access the application at `http://localhost:<host_port>`.
+
+For the source code, additional resources, and a demo, visit our GitHub: [alireza787b/SkyTest](https://github.com/alireza787b/SkyTest).
+
+## Configuration
+
+SkyTest's form fields and structures are defined in JSON files within the `definitions` folder. It is essential to maintain the "attachments" field name in the tests structure JSON for the application to operate normally.
+Other settings can be customized through the `config.py`.
+
+## Contributing
+
+SkyTest is open to contributions. Whether it's adding new features, enhancing existing ones, or improving the UI/UX, your contributions are welcome.
+
+## License
+
+SkyTest is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for more details.
