@@ -69,7 +69,7 @@ For those preferring Docker, SkyTest can be easily deployed using Docker contain
     ```bash
     docker run -d -p 8080:5562 alireza787b/skytest:latest
     ```
-    Access the application at `http://localhost:<host_port>`.
+    Access the application at `http://<host_IP>:<host_port>` eg. `http://localhost:8080`.
 
 For the source code, additional resources, and a demo, visit our GitHub: [alireza787b/SkyTest](https://github.com/alireza787b/SkyTest).
 
