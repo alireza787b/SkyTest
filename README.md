@@ -49,13 +49,34 @@ Ensure Python and Flask are installed on your system. SkyTest utilizes Flask, a 
     ```bash
     python run.py
     ```
-    The application will be available at `http://localhost:5562` (or whatever port defined in the `config.py`).
+    The application will be available at `http://localhost:5562` (or whatever port is defined in the `config.py`).
+
+## Running with Docker
+
+For those preferring Docker, SkyTest can be easily deployed using Docker containers.
+
+1. **Pull the Docker image**:
+    ```bash
+    docker pull alireza787b/skytest:latest
+    ```
+
+2. **Run the Docker container**:
+    Replace `<host_port>` with your desired host port to access the application:
+    ```bash
+    docker run -d -p <host_port>:5562 alireza787b/skytest:latest
+    ```
+    For example, to run on port 8080:
+    ```bash
+    docker run -d -p 8080:5562 alireza787b/skytest:latest
+    ```
+    Access the application at `http://<IP>:<host_port>` eg. `http://localhost:8080` .
+
+For the source code, additional resources, and a demo, visit our GitHub: [alireza787b/SkyTest](https://github.com/alireza787b/SkyTest).
 
 ## Configuration
 
 SkyTest's form fields and structures are defined in JSON files within the `definitions` folder. It is essential to maintain the "attachments" field name in the tests structure JSON for the application to operate normally.
 Other settings can be customized through the `config.py`.
-
 
 ## Contributing
 
