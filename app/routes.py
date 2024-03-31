@@ -317,7 +317,7 @@ def submit_procedure():
         db.session.rollback()
         flash(f'An error occurred: {str(e)}', 'error')
         
-    return redirect(url_for('display_procedure_form'))
+    return redirect(url_for('add_procedure'))
 
 @app.route('/edit-procedure/<int:procedure_id>', methods=['GET', 'POST'])
 def edit_procedure(procedure_id):
