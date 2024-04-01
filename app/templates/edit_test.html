@@ -17,8 +17,20 @@
                         </select>
                     {% elif field.type == 'textarea' %}
                         <textarea class="form-control" id="{{ field.name }}" name="{{ field.name }}">{{ test_data.get(field.name, '') }}</textarea>
-                    {% elif field.type == "file" %}
-                        <!-- Current and New File Handling as in the Add Form -->
+                        {% elif field.type == "file" %}
+                        <!-- Display current files with option to remove -->
+                        {% for file in test_data.get('files', []) %}
+                        <div class="file-display">
+                            <a href="{{ url_for('download_file', test_id=test.id, filename=file) }}" download>{{ file }}</a>
+                            <input type="checkbox" name="files_to_remove[]" value="{{ file }}"> Remove
+                        </div>
+                        {% endfor %}
+                        <!-- Input for adding new files -->
+                        <div class="form-group">
+                            <label for="new_files">Add More Files:</label>
+                            <input type="file" name="new_files" id="new_files" class="form-control" multiple>
+                            <small>Add more files if needed.</small>
+                        </div>
                     {% else %}
                         <!-- Regular Input Fields, including procedure_id and test_id -->
                         {% if field.name == "procedure_id" %}
