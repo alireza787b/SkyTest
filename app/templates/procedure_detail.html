@@ -3,8 +3,37 @@
 {% block title %}Procedure Detail{% endblock %}
 
 {% block content %}
+<style>
+    .action-buttons {
+        margin-bottom: 20px; /* Additional spacing for action buttons */
+        display: flex;
+        gap: 10px; /* Space between buttons */
+    }
+    .action-buttons a {
+        display: inline-flex;
+        align-items: center; /* Vertically centers the icon and text inside the button */
+        justify-content: center;
+    }
+    .action-buttons i {
+        margin-right: 5px; /* Space between icon and text */
+    }
+    .action-buttons .btn {
+        white-space: nowrap; /* Prevents the button text from wrapping */
+    }
+</style>
+
 <div class="my-4">
     <h1>Procedure Detail</h1>
+    <div class="action-buttons">
+        <!-- Edit Procedure Button -->
+        <a href="{{ url_for('edit_procedure', procedure_id=procedure_id) }}" class="btn btn-primary">
+            <i class="fas fa-edit" title="Edit Procedure"></i> Edit Procedure
+        </a>
+        <!-- PDF Export Button -->
+        <a href="{{ url_for('export_procedure_pdf', procedure_id=procedure_id) }}" class="btn btn-primary">
+            <i class="fas fa-file-pdf" title="Export as PDF"></i> Export as PDF
+        </a>
+    </div>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -21,6 +50,6 @@
             {% endfor %}
         </tbody>
     </table>
-    <p><a href="{{ url_for('list_tests') }}" class="btn btn-secondary">Back to List of Procedures</a></p>
+    <p><a href="{{ url_for('list_procedures') }}" class="btn btn-secondary">Back to List of Procedures</a></p>
 </div>
 {% endblock %}

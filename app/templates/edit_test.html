@@ -8,24 +8,31 @@
             {% for field in group['fields'] %}
                 <div class="form-group">
                     <label for="{{ field.name }}">{{ field.label }}</label>
-                    {% if field.type == 'textarea' %}
-                        <textarea class="form-control" id="{{ field.name }}" name="{{ field.name }}">{{ test_data.get(field.name, '') or '' }}</textarea>
+                    
+                    {% if field.type == "select" %}
+                        <select name="{{ field.name }}" id="{{ field.name }}" class="form-select" {% if field.required %}required{% endif %}>
+                            {% for option in field.options %}
+                                <option value="{{ option }}" {% if test_data.get(field.name, '') == option %} selected {% endif %}>{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    {% elif field.type == 'textarea' %}
+                        <textarea class="form-control" id="{{ field.name }}" name="{{ field.name }}">{{ test_data.get(field.name, '') }}</textarea>
                     {% elif field.type == "file" %}
-                        <!-- Display current files with option to remove -->
-                        {% for file in test_data.get('files', []) %}
-                        <div class="file-display">
-                            <a href="{{ url_for('download_file', test_id=test.id, filename=file) }}" download>{{ file }}</a>
-                            <input type="checkbox" name="files_to_remove[]" value="{{ file }}"> Remove
-                        </div>
-                        {% endfor %}
-                        <!-- Input for adding new files -->
-                        <div class="form-group">
-                            <label for="new_files">Add More Files:</label>
-                            <input type="file" name="new_files" id="new_files" class="form-control" multiple>
-                            <small>Add more files if needed.</small>
-                        </div>
+                        <!-- Current and New File Handling as in the Add Form -->
                     {% else %}
-                        <input type="{{ field.type }}" class="form-control" id="{{ field.name }}" name="{{ field.name }}" value="{{ test_data.get(field.name, '') or '' }}" {% if field.readonly %}readonly{% endif %}>
+                        <!-- Regular Input Fields, including procedure_id and test_id -->
+                        {% if field.name == "procedure_id" %}
+                            <select name="procedure_id" id="procedure_id" class="form-select" required>
+                                <option value="">Select a Procedure</option>
+                                {% for id, title in procedure_options %}
+                                    <option value="{{ id }}" {% if id|string == test.procedure_id|string %} selected {% endif %}>{{ title }}</option>
+                                {% endfor %}
+                            </select>
+                        {% elif field.name == "test_id" %}
+                            <input type="text" name="{{ field.name }}" id="{{ field.name }}" class="form-control" value="{{ test.test_id }}" readonly>
+                        {% else %}
+                            <input type="{{ field.type }}" name="{{ field.name }}" id="{{ field.name }}" class="form-control" value="{{ test_data.get(field.name, '') }}" {% if field.readonly %}readonly{% endif %}>
+                        {% endif %}
                     {% endif %}
                 </div>
             {% endfor %}

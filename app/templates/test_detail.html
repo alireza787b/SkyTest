@@ -14,14 +14,28 @@
         color: #007bff;
         cursor: pointer;
     }
+    .edit-test-btn, .export-pdf-btn {
+        margin-right: 10px;
+    }
 </style>
 
 <div class="my-4">
     <h1>Test Detail</h1>
+    <div class="action-buttons mb-3">
+        <!-- Edit Test Button -->
+        <a href="{{ url_for('edit_test', test_id=test_id) }}" class="btn btn-primary edit-test-btn">
+            <i class="fas fa-edit" title="Edit Test"></i> Edit Test
+        </a>
+        <!-- PDF Export Button -->
+        <a href="{{ url_for('export_test_pdf', test_id=test_id) }}" class="btn btn-primary export-pdf-btn">
+            <i class="fas fa-file-pdf" title="Export as PDF"></i> Export as PDF
+        </a>
+    </div>
     <div class="table-responsive">
         <table class="table table-striped table-hover">
             <tbody>
                 {% for label, data in test_details.items() %}
+                {% if label != 'procedure_id' %} <!-- Skip auto-generated 'procedure_id' row -->
                 <tr>
                     <td><strong>{{ label }}:</strong></td>
                     <td>
@@ -51,13 +65,13 @@
                         {% endif %}
                     </td>
                 </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
     </div>
     <!-- PDF Export and Back to List buttons -->
     <div class="mt-4">
-        <a href="{{ url_for('export_test_pdf', test_id=test_id) }}" class="btn btn-primary export-pdf-btn">Export as PDF</a>
         <a href="{{ url_for('list_tests') }}" class="btn btn-secondary">Back to List of Tests</a>
     </div>
 </div>

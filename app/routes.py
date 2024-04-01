@@ -1,6 +1,7 @@
 from datetime import datetime
 import shutil
 import zipfile
+import bcrypt
 from flask import make_response,jsonify, render_template, request, send_file, send_from_directory, url_for, redirect, flash
 import json
 import os
@@ -8,7 +9,7 @@ import os
 from weasyprint import HTML
 from . import app, db
 from config import DATABASE_PATH, TITLE, JSON_PATH, PROCEDURES_JSON_PATH, UPLOAD_FOLDER
-from .utils import convert_query_to_dataframe, convert_to_time, create_test_directory, generate_unique_proc_id, generate_unique_proc_title, save_uploaded_files, try_parse_time, generate_html_content
+from .utils import convert_query_to_dataframe, convert_to_time, create_test_directory, generate_procedure_html_content, generate_unique_proc_id, generate_unique_proc_title, save_uploaded_files, try_parse_time, generate_test_html_content
 from app.models import get_model_columns, get_procedure_model, get_test_data_model
 from app.forms import load_form_structure
 import tempfile
@@ -17,6 +18,7 @@ import shutil
 import pandas as pd
 from io import BytesIO
 from werkzeug.utils import secure_filename
+from flask_bcrypt import Bcrypt
 
     
 @app.route('/')
@@ -96,7 +98,7 @@ def submit_form():
         db.session.rollback()
         flash(f"Error during submission: {e}", "error")
 
-    return redirect(url_for('display_form'))
+    return redirect(url_for('add_test'))
 
 
 @app.route('/edit-test/<int:test_id>', methods=['GET', 'POST'])
@@ -106,6 +108,12 @@ def edit_test(test_id):
 
     # Fetch current files from the database
     current_files = test.file_path.split(',') if test.file_path else []
+    Procedure = get_procedure_model()
+    procedure_options = Procedure.query.with_entities(Procedure.id, Procedure.procedure_title).all()
+    print("Procedure Options:", procedure_options)
+    print("Current Test's Procedure ID:", test.procedure_id)
+
+
 
     if request.method == 'POST':
         # Files marked for removal
@@ -165,7 +173,7 @@ def edit_test(test_id):
 
     test_structure = load_form_structure(JSON_PATH)
 
-    return render_template('edit_test.html', test=test, test_data=test_data, test_structure=test_structure)
+    return render_template('edit_test.html', test=test, test_data=test_data, test_structure=test_structure,procedure_options=procedure_options)
 
 
 
@@ -382,7 +390,7 @@ def view_procedure(procedure_id):
             field_value = getattr(procedure, field_name, "N/A")
             procedure_details[field_label] = field_value
     
-    return render_template('procedure_detail.html', procedure_details=procedure_details)
+    return render_template('procedure_detail.html', procedure_details=procedure_details, procedure_id = procedure_id)
 
 @app.route('/delete-procedure/<int:procedure_id>', methods=['POST'])
 def delete_procedure(procedure_id):
@@ -408,6 +416,37 @@ def download_file(test_id, filename):
     except Exception as e:
         print(f"Error: {e}")  # Log any error
         return "File not found", 404
+    
+    
+@app.route('/procedure/<procedure_id>/export_pdf')
+def export_procedure_pdf(procedure_id):
+    ProcedureModel = get_procedure_model()
+    procedure = ProcedureModel.query.get_or_404(procedure_id)
+
+    # Load the procedure form structure from JSON configuration
+    procedure_form_structure = load_form_structure(PROCEDURES_JSON_PATH)
+    
+    # Dynamically extract procedure details based on the form structure
+    procedure_details = {}
+    for group in procedure_form_structure['procedureGroups']:
+        for field in group['fields']:
+            field_name = field['name']
+            # Assuming the field name directly corresponds to the model attribute
+            field_value = getattr(procedure, field_name, 'N/A')
+            procedure_details[field['label']] = field_value
+
+    # Generate HTML content for PDF
+    html_content = generate_procedure_html_content(procedure_details, procedure_id)
+    pdf = HTML(string=html_content).write_pdf()
+
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=procedure_{procedure_id}_details.pdf'
+
+    return response
+
+
+
 
 
 ############
@@ -451,36 +490,52 @@ def import_data():
     if 'importFile' not in request.files:
         flash('No file part', 'error')
         return redirect(url_for('data_management'))
+
     file = request.files['importFile']
     if file.filename == '':
         flash('No selected file', 'error')
         return redirect(url_for('data_management'))
 
-    filename = secure_filename(file.filename)  # Security enhancement
-    if not filename.endswith('.zip'):  # Additional check for zip extension
+    filename = secure_filename(file.filename)
+    if not filename.endswith('.zip'):
         flash('Uploaded file is not a zip file', 'error')
         return redirect(url_for('data_management'))
 
-    with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
-        file.save(tmpfile.name)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        zip_path = os.path.join(tmpdirname, filename)
+        file.save(zip_path)
 
-        if not zipfile.is_zipfile(tmpfile.name):
-            flash('Uploaded file is not a valid zip file', 'error')
-            os.unlink(tmpfile.name)
-            return redirect(url_for('data_management'))
-
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(tmpdirname)
+        
+        # Process the extracted contents
         try:
-            with zipfile.ZipFile(tmpfile.name, 'r') as zip_ref:
-                temp_extract_dir = tempfile.mkdtemp()
-                zip_ref.extractall(path=temp_extract_dir)
-                # Implement the replacement logic here as before
-                
-            flash('Data import was successful!', 'success')
+            # Database replacement
+            extracted_db_path = os.path.join(tmpdirname, 'skytest.db')
+            if os.path.exists(extracted_db_path):
+                os.replace(extracted_db_path, DATABASE_PATH)  # Replace the existing DB with the new one
+            
+            # Attachments replacement
+            extracted_attachments_path = os.path.join(tmpdirname, 'attachments')
+            if os.path.exists(extracted_attachments_path):
+                if os.path.exists(UPLOAD_FOLDER):
+                    shutil.rmtree(UPLOAD_FOLDER)
+                shutil.copytree(extracted_attachments_path, UPLOAD_FOLDER)
+            
+            # Definitions replacement
+            extracted_definitions_path = os.path.join(tmpdirname, 'definitions')
+            if os.path.exists(extracted_definitions_path):
+                definitions_dest_path = os.path.join('app', 'definitions')
+                if os.path.exists(definitions_dest_path):
+                    shutil.rmtree(definitions_dest_path)
+                shutil.copytree(extracted_definitions_path, definitions_dest_path)
+
+            flash('Data import was successful! Please restart your Docker container, application, or server to apply the changes.', 'success')
+
+            # Add logic here to restart the application if necessary
         except Exception as e:
             flash(f'An error occurred during the import: {e}', 'error')
-        finally:
-            os.unlink(tmpfile.name)  # Cleanup
-            shutil.rmtree(temp_extract_dir, ignore_errors=True)  # Ensure temporary extraction directory is also removed
+            # Handle specific exceptions and cleanup if needed
 
     return redirect(url_for('data_management'))
 
@@ -492,7 +547,7 @@ def export_test_pdf(test_id):
     form_structure = load_form_structure(JSON_PATH)
     
     # Dynamic HTML generation based on form structure and test data
-    html_content = generate_html_content(form_structure, test)
+    html_content = generate_test_html_content(form_structure, test)
     pdf = HTML(string=html_content).write_pdf()
     
     response = make_response(pdf)
@@ -500,6 +555,8 @@ def export_test_pdf(test_id):
     response.headers['Content-Disposition'] = f'attachment; filename=test_{test_id}_details.pdf'
     
     return response
+
+
 
 
 
@@ -542,3 +599,17 @@ def procedure_tests(procedure_id):
     tests = TestData.query.filter_by(procedure_id=procedure_id).all()
     return render_template('procedure_tests.html', tests=tests, procedure=procedure)
 
+@app.route('/setup', methods=['GET', 'POST'])
+def setup_password():
+    # Check if the password is already set (simplified check; implement your own logic)
+    if HASHED_PASSWORD is not None:
+        return redirect(url_for('index'))  # Redirect if the password is already set
+
+    if request.method == 'POST':
+        password = request.form.get('password')
+        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+        # Here, store 'hashed_pw' securely (e.g., in a configuration file or environment variable)
+        flash('Password has been set up successfully.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('setup.html')
