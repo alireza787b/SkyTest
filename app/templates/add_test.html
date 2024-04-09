@@ -22,7 +22,7 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <h1>Flight Test Form</ha1>
+    <h1>Flight Test Form</h1>
     <form action="{{ url_for('submit_form') }}" method="post" enctype="multipart/form-data">
         {% for group in formGroups %}
             <fieldset class="border p-3 rounded">

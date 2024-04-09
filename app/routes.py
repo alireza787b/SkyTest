@@ -599,17 +599,4 @@ def procedure_tests(procedure_id):
     tests = TestData.query.filter_by(procedure_id=procedure_id).all()
     return render_template('procedure_tests.html', tests=tests, procedure=procedure)
 
-@app.route('/setup', methods=['GET', 'POST'])
-def setup_password():
-    # Check if the password is already set (simplified check; implement your own logic)
-    if HASHED_PASSWORD is not None:
-        return redirect(url_for('index'))  # Redirect if the password is already set
 
-    if request.method == 'POST':
-        password = request.form.get('password')
-        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
-        # Here, store 'hashed_pw' securely (e.g., in a configuration file or environment variable)
-        flash('Password has been set up successfully.', 'success')
-        return redirect(url_for('login'))
-    
-    return render_template('setup.html')

@@ -12,7 +12,7 @@
                     "label": "Prototype Name",
                     "name": "prototype_name",
                     "type": "select",
-                    "options": ["Black Typhoon", "Quantix"],
+                    "options": ["Black Typhoon", "Quantix", "Other"],
                     "required": false,
                     "hint": "Enter the name of the prototype being tested."
                 },
@@ -120,7 +120,7 @@
                     "label": "Start Battery Voltage",
                     "name": "start_battery_voltage",
                     "type": "number",
-                    "step": "0.1",
+                    "step": "0.01",
                     "unit": "v",
                     "required": false,
                     "hint": "Voltage of the drone's battery before takeoff, in volts."
@@ -140,7 +140,7 @@
                     "label": "Planned Altitude",
                     "name": "planned_altitude",
                     "type": "number",
-                    "step": "0.1",
+                    "step": "1",
                     "unit": "m",
                     "required": false,
                     "hint": "Planned maximum altitude for the test, in meters."
@@ -149,7 +149,7 @@
                     "label": "Planned Speed",
                     "name": "planned_speed",
                     "type": "number",
-                    "step": "0.1",
+                    "step": "1",
                     "unit": "m/s",
                     "required": false,
                     "hint": "Planned maximum speed for the test, in m/s."
@@ -203,7 +203,7 @@
                     "label": "Max Altitude Achieved",
                     "name": "max_altitude_achieved",
                     "type": "number",
-                    "step": "0.1",
+                    "step": "1",
                     "unit": "m",
                     "required": false,
                     "hint": "Maximum altitude achieved during the flight, in meters."
@@ -212,7 +212,7 @@
                     "label": "Max Speed Achieved",
                     "name": "max_speed_achieved",
                     "type": "number",
-                    "step": "0.1",
+                    "step": "1",
                     "unit": "m/s",
                     "required": false,
                     "hint": "Maximum speed achieved during the flight, in m/s."
@@ -235,7 +235,7 @@
                     "label": "End Battery Voltage",
                     "name": "end_battery_voltage",
                     "type": "number",
-                    "step": "0.1",
+                    "step": "0.01",
                     "unit": "v",
                     "required": false,
                     "hint": "Voltage of the drone's battery after landing, in volts."

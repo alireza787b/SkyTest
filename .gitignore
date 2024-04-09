@@ -9,6 +9,8 @@ attachments/
 
 backup.zip
 
+app/definitions/users.json
+
 # C extensions
 *.so
 
