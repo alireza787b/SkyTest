@@ -53,7 +53,7 @@ def login():
                 "username": username,
                 "password_hash": generate_password_hash(password),
                 "user_mode": "admin",  # Default user mode
-                "date_registered": datetime.now(datetime.UTC).isoformat()
+                "date_registered": datetime.utcnow().isoformat()
             }
             data = {"users": [new_user]}
             with open(PASSWORD_FILE, 'w') as file:
