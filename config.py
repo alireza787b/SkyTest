@@ -20,6 +20,6 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'attach
 # Add these configurations to your config.py
 DATABASE_PATH = os.path.join("instance", 'skytest.db')
 
-SESSION_TIME_MIN = 10
+SESSION_TIME_MIN = 180
 
 PASSWORD_FILE = "app/definitions/users.json"
